@@ -1,6 +1,8 @@
+export PKG_CONFIG_PATH = /opt/vc/lib/pkgconfig
+
 CXX = g++
-CFLAGS = -Wall `sdl2-config --cflags`
-LDFLAGS = -L/usr/lib/arm-linux-gnueabihf/mali-egl -lmali `sdl2-config --libs`
+CFLAGS = -Wall `sdl2-config --cflags` `pkg-config brcmglesv2 --cflags`
+LDFLAGS = `sdl2-config --libs` `pkg-config brcmglesv2 --libs`
 
 opengles_fullscreen.o: opengles_fullscreen.cpp
 	$(CXX) $(CFLAGS) -c opengles_fullscreen.cpp -o opengles_fullscreen.o

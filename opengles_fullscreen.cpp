@@ -43,16 +43,32 @@ int main(int argc, char* argv[]) {
     std::cout << "\tVendor: " << glGetString(GL_VENDOR) << std::endl;
     std::cout << "\tRenderer: " << glGetString(GL_RENDERER) << std::endl;
     std::cout << "\tShading Language Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+
+    // Set the interval for vsync
+    SDL_GL_SetSwapInterval(1);
+
   } else {
     std::cout << "Error: Could not create OpenGLES context" << std::endl;
   }
 
-  // Draw loop goes here!
   glClearColor(228.0/256.0, 88.0/256.0, 236.0/256.0, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
-  SDL_GL_SwapWindow(window);
-  SDL_Delay(6000);
 
+  bool shouldExit = false;
+  SDL_Event event;
+  while(!shouldExit) {
+    while (SDL_PollEvent(&event) != 0) {
+      if(event.type == SDL_KEYDOWN) {
+	shouldExit = true;
+	break;
+      }
+    }
+
+    // Draw stuff here.
+    glClear(GL_COLOR_BUFFER_BIT);
+    SDL_GL_SwapWindow(window);
+   
+  }
+  
   // Clean up
   SDL_GL_DeleteContext(glcontext);
   SDL_DestroyWindow(window);

@@ -13,6 +13,9 @@ int main(int argc, char* argv[]) {
 
   SDL_Init(SDL_INIT_VIDEO);
 
+  // Not interested in the cursor.
+  SDL_ShowCursor(SDL_DISABLE);
+  
   SDL_Window *window;
   window = SDL_CreateWindow("SDL OpenGLES window",
 			    SDL_WINDOWPOS_UNDEFINED,
@@ -36,7 +39,6 @@ int main(int argc, char* argv[]) {
   SDL_GLContext glcontext = SDL_GL_CreateContext(window);
 
   if (glcontext) {
-    std::cout << "Printing out render info:" << std::endl;
     std::cout << "\tOpenGLES version: " << glGetString(GL_VERSION) << std::endl;
     std::cout << "\tVendor: " << glGetString(GL_VENDOR) << std::endl;
     std::cout << "\tRenderer: " << glGetString(GL_RENDERER) << std::endl;
@@ -46,7 +48,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Draw loop goes here!
-  glClearColor(0.0f, 0.3f, 0.3f, 1.0f);
+  glClearColor(228.0/256.0, 88.0/256.0, 236.0/256.0, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
   SDL_GL_SwapWindow(window);
   SDL_Delay(6000);

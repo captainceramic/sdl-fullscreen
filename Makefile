@@ -1,14 +1,18 @@
 export PKG_CONFIG_PATH = /opt/vc/lib/pkgconfig
 
+CC = gcc
 CXX = g++
 CFLAGS = -Wall `sdl2-config --cflags` `pkg-config brcmglesv2 --cflags`
-LDFLAGS = `sdl2-config --libs` `pkg-config brcmglesv2 --libs`
+LIBS = `sdl2-config --libs` `pkg-config brcmglesv2 --libs`
+
+shader_loader.o: shader_loader.c
+	$(CC) $(CFLAGS) -c shader_loader.c -o shader_loader.o
 
 opengles_fullscreen.o: opengles_fullscreen.cpp
 	$(CXX) $(CFLAGS) -c opengles_fullscreen.cpp -o opengles_fullscreen.o
 
-opengles_fullscreen: opengles_fullscreen.o
-	$(CXX) opengles_fullscreen.o $(LDFLAGS) -o opengles_fullscreen
+opengles_fullscreen: opengles_fullscreen.o shader_loader.o
+	$(CXX) -o opengles_fullscreen opengles_fullscreen.o shader_loader.o $(LIBS)
 
 .PHONY: clean test
 

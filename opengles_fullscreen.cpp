@@ -161,8 +161,6 @@ int main(int argc, char* argv[]) {
 					  (float) sizeX / (float) sizeY,
 					  0.1f, 100.0f);
 
-  glm::mat4 mvp = Projection * View * Model;
-					  
   // Set up the shader program.
   GLuint programID = load_shaders(vertexShaderPath, fragmentShaderPath);
 
@@ -194,7 +192,12 @@ int main(int argc, char* argv[]) {
   glClearColor(0.0f, 0.0f, 0.4f, 1.0f);
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
-  
+
+  float float_time;
+
+  // Set the mvp
+  glm::mat4 mvp;
+   
   while(!shouldExit) {
 
     while (SDL_PollEvent(&event) != 0) {
@@ -204,6 +207,12 @@ int main(int argc, char* argv[]) {
       }
     }
 
+    float_time = (float) SDL_GetTicks();
+
+    // Rotate the mvp
+    Model = glm::rotate(Model, 0.01f, glm::vec3(0.2, 1.0, 0.0));
+    mvp = Projection * View * Model;
+    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Positions here.
@@ -220,9 +229,9 @@ int main(int argc, char* argv[]) {
 			  GL_FLOAT, GL_FALSE,
 			  3 * sizeof(GLfloat), (void*)0);   
 
-    // Update the mvp + time matrix location
+    // Update the mvp + time
     glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
-    glUniform1f(TimeID, (float) SDL_GetTicks());
+    glUniform1f(TimeID, float_time);
     
     glUseProgram(programID);
   

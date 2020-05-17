@@ -2,8 +2,8 @@ export PKG_CONFIG_PATH = /opt/vc/lib/pkgconfig
 
 CC = gcc
 CXX = g++
-CFLAGS = -Wall `sdl2-config --cflags` `pkg-config brcmglesv2 --cflags`
-LIBS = `sdl2-config --libs` `pkg-config brcmglesv2 --libs`
+CFLAGS = -Wall `sdl2-config --cflags` `pkg-config brcmglesv2 --cflags` `pkg-config SDL2_image --cflags`
+LIBS = `sdl2-config --libs` `pkg-config brcmglesv2 --libs` `pkg-config SDL2_image --libs`
 
 shader_loader.o: shader_loader.c
 	$(CC) $(CFLAGS) -c shader_loader.c -o shader_loader.o

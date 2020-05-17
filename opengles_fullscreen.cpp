@@ -1,4 +1,5 @@
 #include <iostream>
+
 #include <SDL2/SDL.h>
 #include <GLES2/gl2.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -6,13 +7,14 @@
 extern "C" {
   #include "shader_loader.h"
 }
+
 // This code is based on some example code at:
 // https://wiki.libsdl.org/SDL_CreateWindow (and elsewhere on the SDL wiki)
 // https://www.opengl-tutorial.org/beginners-tutorials/tutorial-3-matrices/
 
 // Set some parameters
-const int sizeX = 1280;
-const int sizeY = 720;
+const int sizeX = 1920;
+const int sizeY = 1080;
 
 const char* fragmentShaderPath = "shaders/shader.frag";
 const char* vertexShaderPath = "shaders/shader.vert";
@@ -46,9 +48,7 @@ int main(int argc, char* argv[]) {
   // Now create the actual context.
   SDL_GLContext glcontext = SDL_GL_CreateContext(window);
 
-  // Set up the vertices and Vertex Buffer Object
-
-  // Our geometry
+  // Geometry and vertex buffer objects
   static const GLfloat g_vertex_buffer_data[] =
   {
     -1.0f,-1.0f,-1.0f, // triangle 1 : begin
@@ -96,8 +96,7 @@ int main(int argc, char* argv[]) {
   glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data),
    	       g_vertex_buffer_data, GL_STATIC_DRAW);
 
-
-  // The color buffers
+  // The colour buffer
   static const GLfloat g_colour_buffer_data[] = {
     0.583f,  0.771f,  0.014f,
     0.609f,  0.115f,  0.436f,
@@ -161,9 +160,10 @@ int main(int argc, char* argv[]) {
 					  (float) sizeX / (float) sizeY,
 					  0.1f, 100.0f);
 
-  // Set up the shader program.
+  // Set up the shader program and use it.
   GLuint programID = load_shaders(vertexShaderPath, fragmentShaderPath);
-
+  glUseProgram(programID);
+  
   // Get uniform and attribute locations
   GLuint MatrixID = glGetUniformLocation(programID, "MVP");
   GLuint TimeID = glGetUniformLocation(programID, "u_time");
@@ -181,6 +181,11 @@ int main(int argc, char* argv[]) {
     // Set the interval for vsync
     SDL_GL_SetSwapInterval(1);
 
+    // Set the clear colour and depth testing
+    glClearColor(0.0f, 0.0f, 0.4f, 1.0f);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    
   } else {
     std::cout << "Error: Could not create OpenGLES context" << std::endl;
   }
@@ -188,14 +193,8 @@ int main(int argc, char* argv[]) {
   bool shouldExit = false;
   SDL_Event event;
 
-  // Set the clear colour and depth testing
-  glClearColor(0.0f, 0.0f, 0.4f, 1.0f);
-  glEnable(GL_DEPTH_TEST);
-  glDepthFunc(GL_LESS);
-
+  // Declare the uniforms (float time and mvp)
   float float_time;
-
-  // Set the mvp
   glm::mat4 mvp;
    
   while(!shouldExit) {
@@ -207,14 +206,10 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    float_time = (float) SDL_GetTicks();
-
-    // Rotate the mvp
+    // Rotate the mvp every frame.
     Model = glm::rotate(Model, 0.01f, glm::vec3(0.2, 1.0, 0.0));
     mvp = Projection * View * Model;
     
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     // Positions here.
     glEnableVertexAttribArray(position_attr_i);
     glBindBuffer(GL_ARRAY_BUFFER, VBO_position);
@@ -231,16 +226,18 @@ int main(int argc, char* argv[]) {
 
     // Update the mvp + time
     glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
+
+    float_time = (float) SDL_GetTicks();
     glUniform1f(TimeID, float_time);
     
-    glUseProgram(programID);
-  
     glDrawArrays(GL_TRIANGLES, 0, 12*3);
     
     SDL_GL_SwapWindow(window);
+
     glDisableVertexAttribArray(position_attr_i);
     glDisableVertexAttribArray(colour_attr_i);
-    
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
   }
   
   // Clean up

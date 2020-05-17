@@ -150,7 +150,15 @@ int main(int argc, char* argv[]) {
 
   // Load up an image to use as a texture
   SDL_Surface* tex_surf = IMG_Load(texturePath);
-  
+  GLuint textureID;
+  glGenTextures(1, &textureID);
+  glBindTexture(GL_TEXTURE_2D, textureID);
+  // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+  // 	       tex_surf->w, tex_surf->h,
+  // 	       0, GL_RGBA, GL_UNSIGNED_BYTE,
+  // 	       tex_surf->pixels);
+
+  // Set the GL mipmapping stuff...
   
   // Don't need the image anymore.
   SDL_FreeSurface(tex_surf);

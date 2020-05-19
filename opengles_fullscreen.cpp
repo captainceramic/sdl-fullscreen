@@ -55,9 +55,9 @@ int main(int argc, char* argv[]) {
   // Now - I'm going to merge the geometry and the colours into a singleVBO.
   static const GLfloat g_vertex_buffer_data[] = {
     // Vertex ... (x3)    Colour ... (x3)             Texture coords (x2)         
-    -1.0f,-1.0f,-1.0f,    0.583f,  0.771f,  0.014f,   1.0f, 1.0f,
-    -1.0f,-1.0f, 1.0f,    0.609f,  0.115f,  0.436f,   1.0f, 0.0f,
-    -1.0f, 1.0f, 1.0f,    0.327f,  0.483f,  0.844f,   0.0f, 0.0f,
+    -1.0f,-1.0f,-1.0f,    0.583f,  0.771f,  0.014f,   0.0f, 0.0f,
+    -1.0f,-1.0f, 1.0f,    0.609f,  0.115f,  0.436f,   0.0f, 1.0f,
+    -1.0f, 1.0f, 1.0f,    0.327f,  0.483f,  0.844f,   1.0f, 1.0f,
      1.0f, 1.0f,-1.0f,    0.822f,  0.569f,  0.201f,   0.0f, 1.0f,
     -1.0f,-1.0f,-1.0f,    0.435f,  0.602f,  0.223f,   1.0f, 1.0f,
     -1.0f, 1.0f,-1.0f,    0.310f,  0.747f,  0.185f,   1.0f, 0.0f,

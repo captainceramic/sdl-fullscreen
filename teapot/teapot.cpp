@@ -17,8 +17,8 @@ extern "C" {
 }
 
 
-const char* teapotPath = "../data/cube.obj";
-//const char* teapotPath = "../data/newell_teaset/teapot.obj";
+const char* cubePath = "../data/cube.obj";
+const char* teapotPath = "../data/newell_teaset/teapot.obj";
 
 const unsigned int sizeX = 1920;
 const unsigned int sizeY = 1080;
@@ -124,22 +124,33 @@ bool loadOBJ(
 
 int main(int argc, char* argv[]) {
 
-  // variables to store the data
-  std::vector< glm::vec3 > vertices;
-  std::vector< glm::vec2 > uvs;
-  std::vector< glm::vec3 > normals;
+  // array variables to store the data
+  // TB TODO: Do this in a class.
+  std::vector< glm::vec3 > cube_1_vertices;
+  std::vector< glm::vec2 > cube_1_uvs;
+  std::vector< glm::vec3 > cube_1_normals;
+
+  std::vector< glm::vec3 > cube_2_vertices;
+  std::vector< glm::vec2 > cube_2_uvs;
+  std::vector< glm::vec3 > cube_2_normals;
   
-  if( loadOBJ(teapotPath, vertices, uvs, normals) ) {
-    std::cout << "Teapot time!!" << std::endl;
+  if( loadOBJ(cubePath, cube_1_vertices, cube_1_uvs, cube_1_normals) ) {
+    std::cout << "cube 1 done" << std::endl;
   } else {
-    std::cout << "No teapot!!" << std::endl;
+    std::cout << "no cube 1 :(" << std::endl;
   }
 
-  printf("output vertices has %d elements\n", vertices.size());
-  for(uint i = 0; i < vertices.size(); i++) {
-    printf("%f %f %f\n", vertices[i][0], vertices[i][1], vertices[i][2]);
+  if( loadOBJ(cubePath, cube_2_vertices, cube_2_uvs, cube_2_normals) ) {
+    std::cout << "cube 2 done" << std::endl;
+  } else {
+    std::cout << "no cube 2 :(" << std::endl;
   }
-  
+
+  //printf("output vertices has %d elements\n", vertices.size());
+  // for(uint i = 0; i < vertices.size(); i++) {
+  //   printf("%f %f %f\n", vertices[i][0], vertices[i][1], vertices[i][2]);
+  // }
+
   // We have now loaded up the teapot! Time to render it up
   // using the same techniques as the previous tutorial.
 
@@ -168,18 +179,24 @@ int main(int argc, char* argv[]) {
   // Open GL context
   SDL_GLContext glcontext = SDL_GL_CreateContext(window);
 
-  // Create a VBO for the teapot vertex data.
-  GLuint vertexVBO;
-  glGenBuffers(1, &vertexVBO);
-  glBindBuffer(GL_ARRAY_BUFFER, vertexVBO);
-  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3),
-	       &vertices[0], GL_STATIC_DRAW);
+  // Create a VBO for the object vertex data.
+  GLuint vertexVBO_cube_1;
+  glGenBuffers(1, &vertexVBO_cube_1);
+  glBindBuffer(GL_ARRAY_BUFFER, vertexVBO_cube_1);
+  glBufferData(GL_ARRAY_BUFFER, cube_1_vertices.size() * sizeof(glm::vec3),
+	       &cube_1_vertices[0], GL_STATIC_DRAW);
 
-  // MVP matrix for the triangle
+  GLuint vertexVBO_cube_2;
+  glGenBuffers(1, &vertexVBO_cube_2);
+  glBindBuffer(GL_ARRAY_BUFFER, vertexVBO_cube_2);
+  glBufferData(GL_ARRAY_BUFFER, cube_2_vertices.size() * sizeof(glm::vec3),
+	       &cube_2_vertices[0], GL_STATIC_DRAW);
+
+  // MVP matrix for the scene.
   glm::mat4 Model = glm::mat4(1.0f);
-  glm::mat4 View = glm::lookAt(glm::vec3(0.0f, 0.5f, 10.0f), // camera location
-			       glm::vec3(0.0, 0.0, 0.0), // looking at origin
-			       glm::vec3(0.0, 1.0, 0.0)  // setting up direction
+  glm::mat4 View = glm::lookAt(glm::vec3(0.0f, 0.0f, 5.0f), // camera location
+			       glm::vec3(0.0f, 0.0f, 0.0f), // looking at origin
+			       glm::vec3(0.0f, 1.0f, 0.0f)  // setting up direction
 			       );
 
   glm::mat4 Projection = glm::perspective(glm::radians(45.0f),
@@ -192,8 +209,7 @@ int main(int argc, char* argv[]) {
 
   // Get uniform and attribute locations
   GLuint MVP_id = glGetUniformLocation(programID, "MVP");
-
-  GLint position_attr_i = glGetAttribLocation(programID, "vPosition");
+  GLuint position_attr_i = glGetAttribLocation(programID, "vPosition");
 
   // Set some OpenGLES params
   SDL_GL_SetSwapInterval(1);
@@ -216,12 +232,13 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    // Do some rotations if necessary.
-    //Model = glm::rotate(Model, 0.01f, glm::vec3(1.0, 0.2, 0.1));
+    // Insert the MVP and do some rotations if necessary.
+    Model = glm::rotate(Model, 0.01f, glm::vec3(0.0, 1.0, 0.1));
     mvp = Projection * View * Model;
+    glUniformMatrix4fv(MVP_id, 1, GL_FALSE, &mvp[0][0]);
     
     // Bind the vertex buffer
-    glBindBuffer(GL_ARRAY_BUFFER, vertexVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexVBO_cube_1);
     glVertexAttribPointer(position_attr_i,
 			  3,
 			  GL_FLOAT,
@@ -230,14 +247,11 @@ int main(int argc, char* argv[]) {
 			  (void*) (0*sizeof(GLfloat)));
     glEnableVertexAttribArray(position_attr_i);
     
-    // Insert the MVP
-    glUniformMatrix4fv(MVP_id, 1, GL_FALSE, &mvp[0][0]);
-    
-    glDrawArrays(GL_TRIANGLES, 0, vertices.size() * 3);
+    glDrawArrays(GL_TRIANGLES, 0, cube_1_vertices.size());
 
     SDL_GL_SwapWindow(window);
 
-    glDisableVertexAttribArray(position_attr_i);
+    //glDisableVertexAttribArray(position_attr_i);
 
   }
 

@@ -15,6 +15,7 @@
 extern "C" {
   #include "../shader_loader.h"
 }
+#include "object_loader.hpp"
 
 
 const char* cubePath = "../data/cube.obj";
@@ -25,101 +26,6 @@ const unsigned int sizeY = 1080;
 
 const char* fragmentShaderPath = "shaders/shader.frag";
 const char* vertexShaderPath = "shaders/shader.vert";
-
-// Function prototype for the model loader
-bool loadOBJ(
-	     const char* path,
-	     std::vector < glm::vec3 > & out_vertices,
-	     std::vector < glm::vec2 > & out_uvs,
-	     std::vector < glm::vec3 > & out_normals
-	     ) {
-
-  // set up temporary variables
-  std::vector< unsigned int > vertexIndices, uvIndices, normalIndices;
-  std::vector< glm::vec3 > temp_vertices;
-  std::vector< glm::vec2 > temp_uvs;
-  std::vector< glm::vec3 > temp_normals;
-
-  // open up the object file
-  FILE * file = fopen(path, "r");
-  if( file == NULL ) {
-    std::cout << "Impossible to open file!" << std::endl;
-    return false;
-  }
-
-  while( 1 ) {
-    char lineHeader[128];
-    // read the first word of the line
-    int res = fscanf(file, "%s", lineHeader);
-
-    if (res == EOF)
-      break;
-
-    // vertice, uvs and normals first
-    if ( strcmp( lineHeader, "v" ) == 0) {
-      glm::vec3 vertex;
-      fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z );
-      temp_vertices.push_back(vertex);
-    } else if ( strcmp( lineHeader, "vt" ) == 0 ){
-      glm::vec2 uv;
-      fscanf(file, "%f %f\n", &uv.x, &uv.y );
-      temp_uvs.push_back(uv);
-    } else if ( strcmp( lineHeader, "vn" ) == 0) {
-      glm::vec3 normal;
-      fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z );
-      temp_normals.push_back(normal);
-    } else if (strcmp( lineHeader, "f" ) == 0 ) {
-      // Now the indexes of each point
-      std::string vertex1, vertex2, vertex3;
-      unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
-
-      int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n",
-			   &vertexIndex[0], &uvIndex[0], &normalIndex[0],
-			   &vertexIndex[1], &uvIndex[1], &normalIndex[1],
-			   &vertexIndex[2], &uvIndex[2], &normalIndex[2]);
-      if (matches != 9) {
-	std::cout << "File can't be read! line is:\n" << file << std::endl;
-	return false;
-      }
-
-      // Add the indices of each point to the input ectors
-      vertexIndices.push_back(vertexIndex[0]);
-      vertexIndices.push_back(vertexIndex[1]);
-      vertexIndices.push_back(vertexIndex[2]);
-
-      uvIndices.push_back(uvIndex[0]);
-      uvIndices.push_back(uvIndex[1]);
-      uvIndices.push_back(uvIndex[2]);
-
-      normalIndices.push_back(normalIndex[0]);
-      normalIndices.push_back(normalIndex[1]);
-      normalIndices.push_back(normalIndex[2]);
-      
-    }
-  }
-
-  std::cout << "We need to store "
-	    << vertexIndices.size()
-	    << " vertices." << std::endl;
-  
-  // Now we replace the indices with the actual values
-  for( unsigned int i=0; i<vertexIndices.size(); i++) {
-    unsigned int vertexIndex = vertexIndices[i];
-    
-    // OBJ file indexes from 1 not 0;
-    glm::vec3 vertex = temp_vertices[ vertexIndex-1 ];
-    out_vertices.push_back(vertex);
-    
-    glm::vec2 uv = temp_uvs[ vertexIndex-1 ];
-    out_uvs.push_back(uv);
-    
-    glm::vec3 normal = temp_normals[ vertexIndex-1];
-    out_normals.push_back(normal);
-    
-  }
-  
-  return true;
-};
 
 
 int main(int argc, char* argv[]) {
@@ -134,13 +40,13 @@ int main(int argc, char* argv[]) {
   std::vector< glm::vec2 > cube_2_uvs;
   std::vector< glm::vec3 > cube_2_normals;
   
-  if( loadOBJ(cubePath, cube_1_vertices, cube_1_uvs, cube_1_normals) ) {
+  if( loadQuadOBJ(teapotPath, cube_1_vertices, cube_1_uvs, cube_1_normals) ) {
     std::cout << "cube 1 done" << std::endl;
   } else {
     std::cout << "no cube 1 :(" << std::endl;
   }
 
-  if( loadOBJ(cubePath, cube_2_vertices, cube_2_uvs, cube_2_normals) ) {
+  if( loadTriangleOBJ(cubePath, cube_2_vertices, cube_2_uvs, cube_2_normals) ) {
     std::cout << "cube 2 done" << std::endl;
   } else {
     std::cout << "no cube 2 :(" << std::endl;

@@ -9,7 +9,7 @@ LIBS = `sdl2-config --libs` `pkg-config brcmglesv2 --libs`
 shader_loader.o: ../shader_loader.c
 	$(CC) $(CFLAGS) -c ../shader_loader.c -o shader_loader.o
 
-teapot.o: teapot.cpp
+teapot.o: teapot.cpp object_loader.hpp
 	$(CPP) $(CFLAGS)  -c teapot.cpp -o teapot.o
 
 teapot: shader_loader.o teapot.o

@@ -18,7 +18,7 @@ extern "C" {
 #include "object_loader.hpp"
 
 
-const char* cubePath = "../data/cube.obj";
+const char* cubePath = "../data/teapot.obj";
 const char* teapotPath = "../data/newell_teaset/teapot.obj";
 
 const unsigned int sizeX = 1920;
@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
   std::vector< glm::vec2 > cube_2_uvs;
   std::vector< glm::vec3 > cube_2_normals;
   
-  if( loadQuadOBJ(teapotPath, cube_1_vertices, cube_1_uvs, cube_1_normals) ) {
+  if( loadTriangleOBJ(teapotPath, cube_1_vertices, cube_1_uvs, cube_1_normals) ) {
     std::cout << "cube 1 done" << std::endl;
   } else {
     std::cout << "no cube 1 :(" << std::endl;
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
 
   // MVP matrix for the scene.
   glm::mat4 Model = glm::mat4(1.0f);
-  glm::mat4 View = glm::lookAt(glm::vec3(0.0f, 0.0f, 5.0f), // camera location
+  glm::mat4 View = glm::lookAt(glm::vec3(0.0f, 0.0f, 10.0f), // camera location
 			       glm::vec3(0.0f, 0.0f, 0.0f), // looking at origin
 			       glm::vec3(0.0f, 1.0f, 0.0f)  // setting up direction
 			       );
@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
 			  (void*) (0*sizeof(GLfloat)));
     glEnableVertexAttribArray(position_attr_i);
     
-    glDrawArrays(GL_TRIANGLES, 0, cube_1_vertices.size());
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, cube_1_vertices.size());
 
     SDL_GL_SwapWindow(window);
 

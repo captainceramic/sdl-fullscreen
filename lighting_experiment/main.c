@@ -9,9 +9,12 @@
 */
 
 #include <stdio.h>
+#include <stdbool.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+
+#include "object_loader.h"
 
 /* Global parameters */
 const int sizeX = 1920;
@@ -29,9 +32,21 @@ SDL_GLContext *glContext;
    * A pointer to a shader program
 
 */
-struct Cube {
-}
+typedef struct {
+  /* The cube contains:
+     - The address of the relevant shader program
+     - Pointer to an array of vertices
+     - Pointer to an array of normals
+     - Pointer to an array of uvs
+     - A model matrix (though I haven't worked out how to do that in plain C
+   */
 
+  uint shaderProgramAddress;
+  float **vertices;
+  float **normals;
+  float **uvs;
+  
+} Cube;
 
 void set_up() {
   SDL_Init(SDL_INIT_VIDEO);
@@ -74,12 +89,31 @@ void clean_up() {
   SDL_Quit();
 }
 
+Cube create_cube(char* cube_filename) {
+  /* This is a function that given a path to an OBJ object file will
+     create a Cube struct with the relevant information.
+  */
+
+  Cube thisCube;
+  if(loadOBJ(cube_filename, thisCube.vertices, thisCube.uvs, thisCube.normals)) {
+    printf("loaded cube from file: %s\n", cube_filename);
+  } else {
+    printf("ERROR: file load %s failed\n", cube_filename);
+  }
+
+  return thisCube;
+  
+}
+
 int main(int argc, char* argv[]) {  
+
   set_up();
 
+  /* TB NOTE: Do I need to free the memory for these? */
+  Cube cube_1 = create_cube("../data/cube.obj");
 
-
-
+  /* Have the cubes been created properly? */
+  printf("first number is: %f\n", cube_1.vertices[0]);
 
   clean_up();
 

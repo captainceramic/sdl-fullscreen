@@ -1,95 +1,168 @@
+#include <stdbool.h>
+
 // C header-only library containing functions to load up TRIANGLE based OBJ files.
-bool loadOBJ(
-	     const char* path,
-	     std::vector < glm::vec3 > & out_vertices,
-	     std::vector < glm::vec2 > & out_uvs,
-	     std::vector < glm::vec3 > & out_normals
-	     ) {
+bool loadOBJ(const char* path,
+	     float *out_vertices,
+	     float *out_uvs,
+	     float *out_normals) {
 
-  // set up temporary variables
-  std::vector< unsigned int > vertexIndices, uvIndices, normalIndices;
-  std::vector< glm::vec3 > temp_vertices;
-  std::vector< glm::vec2 > temp_uvs;
-  std::vector< glm::vec3 > temp_normals;
+  /* I need to assign some memory for the arrays.
+     However I don't know how much I will need!
+     Therefore, I will find the length of the file     
+     https://stackoverflow.com/questions/238603/how-can-i-get-a-files-size-in-c
+  */
 
-  // open up the object file
-  FILE * file = fopen(path, "r");
-  if( file == NULL ) {
-    std::cout << "Impossible to open file!" << std::endl;
+  FILE *fp;
+  fp = fopen(path, "r");
+  if( fp == NULL ) {
+    printf("Impossible to open file: %s", path);
     return false;
   }
 
+  fseek(fp, 0L, SEEK_END);
+  uint file_size = ftell(fp);
+  printf("file is %d bytes long\n", file_size);
+  rewind(fp);
+
+  uint max_length = file_size / 8;
+  printf("therefore, cannot require more than %d vertices\n", max_length);
+  
+  /* Next step: allocate memory for the temp arrays
+     see: https://www.geeksforgeeks.org/dynamically-allocate-2d-array-c/
+  */
+  float **temp_vertices = (float **) calloc(max_length, sizeof(float*));
+  float **temp_uvs = (float **) calloc(max_length, sizeof(float*));
+  float **temp_normals = (float **) calloc(max_length, sizeof(float*));
+  for(int i = 0; i<max_length; i++) {
+    temp_vertices[i] = (float *) calloc(3, sizeof(float));
+    temp_uvs[i] = (float *) calloc(2, sizeof(float));
+    temp_normals[i] = (float *) calloc(3, sizeof(float));
+  }
+
+  /* array to store the index positions for the output (a set of 5) */
+  int *output_indices = (int *) calloc(9*max_length, sizeof(int));
+
+  /* Now we start parsing the file
+     I think this bit is from the learn openGL tutorial
+  */
+  uint vert_ix = 0;
+  uint uv_ix = 0;
+  uint normal_ix = 0;
+  uint output_ix = 0;
+  
   while( 1 ) {
     char lineHeader[128];
-    // read the first word of the line
-    int res = fscanf(file, "%s", lineHeader);
-
+    /* read the first word of the line */
+    int res = fscanf(fp, "%s", lineHeader);
     if (res == EOF)
       break;
 
-    // vertice, uvs and normals first
+    /*  vertices, uvs and normals first */
     if ( strcmp( lineHeader, "v" ) == 0) {
-      glm::vec3 vertex;
-      fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z );
-      temp_vertices.push_back(vertex);
+
+      fscanf(fp, "%f %f %f\n",
+	     &temp_vertices[vert_ix][0],
+	     &temp_vertices[vert_ix][1],
+	     &temp_vertices[vert_ix][2]);
+
+      vert_ix += 1;
+      
     } else if ( strcmp( lineHeader, "vt" ) == 0 ){
-      glm::vec2 uv;
-      fscanf(file, "%f %f\n", &uv.x, &uv.y );
-      temp_uvs.push_back(uv);
+      fscanf(fp, "%f %f\n",
+    	     &temp_uvs[uv_ix][0],
+    	     &temp_uvs[uv_ix][1] );
+      uv_ix += 1;
     } else if ( strcmp( lineHeader, "vn" ) == 0) {
-      glm::vec3 normal;
-      fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z );
-      temp_normals.push_back(normal);
-    } else if (strcmp( lineHeader, "f" ) == 0 ) {
-      // Now the indexes of each point
-      std::string vertex1, vertex2, vertex3;
-      unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
+      fscanf(fp, "%f %f %f\n",
+    	     &temp_normals[normal_ix][0],
+    	     &temp_normals[normal_ix][1],
+    	     &temp_normals[normal_ix][2]);
+      normal_ix += 1;
+    } else if (strcmp( lineHeader, "f" ) == 0 ) { 
 
-      int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n",
-			   &vertexIndex[0], &uvIndex[0], &normalIndex[0],
-			   &vertexIndex[1], &uvIndex[1], &normalIndex[1],
-			   &vertexIndex[2], &uvIndex[2], &normalIndex[2]);
-
+      /* Now the indexes of each point
+	 3 sets, vertex, uv, normal  */
+      int matches = fscanf(fp, "%d/%d/%d %d/%d/%d %d/%d/%d\n",
+			   &output_indices[output_ix],
+			   &output_indices[output_ix+1],
+			   &output_indices[output_ix+2],
+			   &output_indices[output_ix+3],
+			   &output_indices[output_ix+4],
+			   &output_indices[output_ix+5],
+			   &output_indices[output_ix+6],
+			   &output_indices[output_ix+7],
+			   &output_indices[output_ix+8]);
+      output_ix += 9;
       if (matches != 9) {
-	std::cout << "File can't be read! line is:\n" << file << std::endl;
+	printf("File can't be read!");
 	return false;
       }
-
-      // Add the indices of each point to the input vectors
-      vertexIndices.push_back(vertexIndex[0]);
-      vertexIndices.push_back(vertexIndex[1]);
-      vertexIndices.push_back(vertexIndex[2]);
-
-      uvIndices.push_back(uvIndex[0]);
-      uvIndices.push_back(uvIndex[1]);
-      uvIndices.push_back(uvIndex[2]);
-
-      normalIndices.push_back(normalIndex[0]);
-      normalIndices.push_back(normalIndex[1]);
-      normalIndices.push_back(normalIndex[2]);
-      
     }
   }
 
-  std::cout << "We need to store "
-	    << vertexIndices.size()
-	    << " vertices." << std::endl;
+  printf("file contains: %d vertices, %d uvs and %d normals\n",
+	 vert_ix, uv_ix, normal_ix);
   
-  // Now we replace the indices with the actual values
-  for( unsigned int i=0; i<vertexIndices.size(); i++) {
-    unsigned int vertexIndex = vertexIndices[i];
+  int output_length = output_ix / 9;
+  printf("output size must be %d\n", output_length);
+
+  /* Now set up the outputs - straightforward arrays */
+  out_vertices = (float *) calloc(3*3*output_length, sizeof(float));
+  out_uvs =(float *) calloc(3*2*output_length, sizeof(float));
+  out_normals = (float *) calloc(3*3*output_length, sizeof(float));
+
+  for(int i=0; i<output_length; i++) {
+
+    int vertex_ix_1 = output_indices[(9*i)];
+    int uv_ix_1 = output_indices[(9*i)+1];	
+    int normal_ix_1 = output_indices[(9*i)+2];
+
+    int vertex_ix_2 = output_indices[(9*i)+3];
+    int uv_ix_2 = output_indices[(9*i)+4];	
+    int normal_ix_2 = output_indices[(9*i)+5];
     
-    // OBJ file indexes from 1 not 0;
-    glm::vec3 vertex = temp_vertices[ vertexIndex-1 ];
-    out_vertices.push_back(vertex);
+    int vertex_ix_3 = output_indices[(9*i)+6];
+    int uv_ix_3 = output_indices[(9*i)+7];	
+    int normal_ix_3 = output_indices[(9*i)+8];
+
+    /* Now write to the output arrays */
+    out_vertices[(3*i)] = temp_vertices[vertex_ix_1][0];
+    out_vertices[(3*i)+1] = temp_vertices[vertex_ix_1][1];
+    out_vertices[(3*i)+2] = temp_vertices[vertex_ix_1][2];
+    out_vertices[(3*i)+3] = temp_vertices[vertex_ix_2][0];
+    out_vertices[(3*i)+4] = temp_vertices[vertex_ix_2][1];
+    out_vertices[(3*i)+5] = temp_vertices[vertex_ix_2][2];
+    out_vertices[(3*i)+6] = temp_vertices[vertex_ix_3][0];
+    out_vertices[(3*i)+7] = temp_vertices[vertex_ix_3][1];
+    out_vertices[(3*i)+8] = temp_vertices[vertex_ix_3][2];
     
-    glm::vec2 uv = temp_uvs[ vertexIndex-1 ];
-    out_uvs.push_back(uv);
-    
-    glm::vec3 normal = temp_normals[ vertexIndex-1];
-    out_normals.push_back(normal);
-    
+    out_uvs[(2*i)] = temp_vertices[uv_ix_1][0];
+    out_uvs[(2*i)+1] = temp_vertices[uv_ix_1][0];
+    out_uvs[(2*i)+2] = temp_vertices[uv_ix_2][1];
+    out_uvs[(2*i)+3] = temp_vertices[uv_ix_2][1];
+    out_uvs[(2*i)+4] = temp_vertices[uv_ix_3][2];
+    out_uvs[(2*i)+5] = temp_vertices[uv_ix_3][2];
+
+    out_normals[(3*i)] = temp_normals[normal_ix_1][0];
+    out_normals[(3*i)+1] = temp_normals[normal_ix_1][1];
+    out_normals[(3*i)+2] = temp_normals[normal_ix_1][2];
+    out_normals[(3*i)+3] = temp_normals[normal_ix_2][0];
+    out_normals[(3*i)+4] = temp_normals[normal_ix_2][1];
+    out_normals[(3*i)+5] = temp_normals[normal_ix_2][2];
+    out_normals[(3*i)+6] = temp_normals[normal_ix_3][0];
+    out_normals[(3*i)+7] = temp_normals[normal_ix_3][1];
+    out_normals[(3*i)+8] = temp_normals[normal_ix_3][2];
   }
+
+  /* Free all our memory */
+  for(int i = 0; i<max_length; i++) {
+    free(temp_vertices[i]);
+    free(temp_normals[i]);
+    free(temp_uvs[i]);
+  }
+  free(output_indices);
   
+  fclose(fp);
+    
   return true;
-};
+}

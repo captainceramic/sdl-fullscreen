@@ -1,6 +1,9 @@
 #ifndef CUBE_HEADER
 #define CUBE_HEADER
 
+#include <gsl/gsl_matrix.h>
+
+
 typedef struct {
   /* C struct to hold the information about our cubes:
      - The address of the relevant shader program
@@ -12,6 +15,7 @@ typedef struct {
 
   uint shaderProgramAddress;
   uint num_triangles;
+  gsl_matrix *model_matrix;
   float *vertices;
   float *normals;
   float *uvs;

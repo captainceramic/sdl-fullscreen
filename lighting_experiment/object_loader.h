@@ -97,18 +97,18 @@ bool loadOBJ(const char* path, Cube* cubePtr) {
       }
     }
   }
-
+  
   printf("file contains: %d vertices, %d uvs and %d normals\n",
 	 vert_ix, uv_ix, normal_ix);
   
   uint output_length = output_ix / 9;
   printf("output size must be %d\n", output_length);
-
+  
   /* Now set up the outputs - straightforward arrays */
   float *out_vertices = (float *) calloc(3*3*output_length, sizeof(float));
   float *out_uvs =(float *) calloc(3*2*output_length, sizeof(float));
   float *out_normals = (float *) calloc(3*3*output_length, sizeof(float));
-
+  
   /* Check the out vertices are working OK */
   /* for(int i=0; i<9*output_length; i++) { */
   /*   printf("%f\n", out_vertices[i]); */
@@ -180,7 +180,6 @@ bool loadOBJ(const char* path, Cube* cubePtr) {
     free(temp_uvs[i]);
   }
   free(output_indices);
-  
   fclose(fp);
 
   /* Update the output pointers. */

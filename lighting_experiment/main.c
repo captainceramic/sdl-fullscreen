@@ -13,6 +13,8 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_blas.h>
 
 #include "cube.h"
 #include "object_loader.h"
@@ -79,6 +81,10 @@ Cube create_cube(char* cube_filename) {
     printf("ERROR: file load %s failed\n", cube_filename);
   }
 
+  /* Set the default model matrix as the identity matrix */
+  thisCube.model_matrix = gsl_matrix_calloc(4, 4);
+  gsl_matrix_set_identity(thisCube.model_matrix);
+  
   return thisCube;
   
 }
@@ -88,7 +94,34 @@ void destroy_cube(Cube * thisCube) {
   free(thisCube->vertices);
   free(thisCube->uvs);
   free(thisCube->normals);
+  gsl_matrix_free(thisCube->model_matrix);
+}
 
+void create_view_matrix(gsl_matrix* view_matrix) {
+  /* This is a function from
+     https://www.3dgep.com/understanding-the-view-matrix/ 
+  */
+
+  gsl_matrix* orientation = gsl_matrix_calloc(4, 4);
+  gsl_matrix_set_identity(orientation);
+
+  gsl_matrix* translation = gsl_matrix_calloc(4, 4);
+  gsl_matrix_set_identity(translation);
+
+  /* Eye location is looking from the y axis, 5 units*/
+  gsl_matrix_set(translation, 1, 3, -5.0);
+
+  /* do the matrix multiplication */
+  /* see: https://stackoverflow.com/questions/40687568/matrix-multiplication-using-gsl */
+  gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0,
+		 orientation, translation, 0.0,
+		 view_matrix); 
+
+  gsl_matrix_free(orientation);
+  gsl_matrix_free(translation);
+}
+
+void create_projection_matrix(gsl_matrix* projection_matrix) {
 }
 
 int main(int argc, char* argv[]) {  
@@ -104,8 +137,35 @@ int main(int argc, char* argv[]) {
   /* printf("first number is: %f\n", cube_1.vertices[0]); */
   /* printf("second number is: %f\n", cube_1.vertices[1]); */
 
+  /* Next up: we need view and projection matrices */
+  gsl_matrix* view_matrix = gsl_matrix_calloc(4, 4);
+  create_view_matrix(view_matrix);
+
+  /* How does our view matrix look? */
+  /* for(int i=0; i<4; i++) { */
+  /*   printf("[ %lf %lf %lf %lf ]", */
+  /* 	   gsl_matrix_get(view_matrix, i, 0), */
+  /* 	   gsl_matrix_get(view_matrix, i, 1), */
+  /* 	   gsl_matrix_get(view_matrix, i, 2), */
+  /* 	   gsl_matrix_get(view_matrix, i, 3)); */
+  /* } */
+
+  gsl_matrix* projection_matrix = gsl_matrix_calloc(4, 4);
+  create_projection_matrix(projection_matrix);
+
+  
+
+
+
+
+
+
+  
+  /* Clean up functions */
   destroy_cube(&cube_1);
   destroy_cube(&cube_2);
+  gsl_matrix_free(view_matrix);
+  gsl_matrix_free(projection_matrix); 
   clean_up();
 
   return 0;

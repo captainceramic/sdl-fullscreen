@@ -1,10 +1,8 @@
 #include <stdbool.h>
+#include "cube.h"
 
 // C header-only library containing functions to load up TRIANGLE based OBJ files.
-bool loadOBJ(const char* path,
-	     float *out_vertices,
-	     float *out_uvs,
-	     float *out_normals) {
+bool loadOBJ(const char* path, Cube* cubePtr) {
 
   /* I need to assign some memory for the arrays.
      However I don't know how much I will need!
@@ -103,14 +101,19 @@ bool loadOBJ(const char* path,
   printf("file contains: %d vertices, %d uvs and %d normals\n",
 	 vert_ix, uv_ix, normal_ix);
   
-  int output_length = output_ix / 9;
+  uint output_length = output_ix / 9;
   printf("output size must be %d\n", output_length);
 
   /* Now set up the outputs - straightforward arrays */
-  out_vertices = (float *) calloc(3*3*output_length, sizeof(float));
-  out_uvs =(float *) calloc(3*2*output_length, sizeof(float));
-  out_normals = (float *) calloc(3*3*output_length, sizeof(float));
+  float *out_vertices = (float *) calloc(3*3*output_length, sizeof(float));
+  float *out_uvs =(float *) calloc(3*2*output_length, sizeof(float));
+  float *out_normals = (float *) calloc(3*3*output_length, sizeof(float));
 
+  /* Check the out vertices are working OK */
+  /* for(int i=0; i<9*output_length; i++) { */
+  /*   printf("%f\n", out_vertices[i]); */
+  /* } */
+  
   for(int i=0; i<output_length; i++) {
 
     int vertex_ix_1 = output_indices[(9*i)];
@@ -125,6 +128,15 @@ bool loadOBJ(const char* path,
     int uv_ix_3 = output_indices[(9*i)+7];	
     int normal_ix_3 = output_indices[(9*i)+8];
 
+    /* printf("vertex ix:\n"); */
+    /* printf("%d %d %d\n", vertex_ix_1, vertex_ix_2, vertex_ix_3); */
+
+    /* printf("uv ix:\n"); */
+    /* printf("%d %d %d\n", uv_ix_1, uv_ix_2, uv_ix_3); */
+
+    /* printf("normal ix:\n"); */
+    /* printf("%d %d %d\n", normal_ix_1, normal_ix_2, normal_ix_3); */
+    
     /* Now write to the output arrays */
     out_vertices[(3*i)] = temp_vertices[vertex_ix_1][0];
     out_vertices[(3*i)+1] = temp_vertices[vertex_ix_1][1];
@@ -154,6 +166,13 @@ bool loadOBJ(const char* path,
     out_normals[(3*i)+8] = temp_normals[normal_ix_3][2];
   }
 
+  /* Test the output values: */
+  /* printf("test output values:\n"); */
+  /* printf("%f %f %f\n", */
+  /* 	 out_vertices[4], */
+  /* 	 out_vertices[5], */
+  /* 	 out_vertices[6]); */
+  
   /* Free all our memory */
   for(int i = 0; i<max_length; i++) {
     free(temp_vertices[i]);
@@ -163,6 +182,14 @@ bool loadOBJ(const char* path,
   free(output_indices);
   
   fclose(fp);
-    
+
+  /* Update the output pointers. */
+  cubePtr->num_triangles = output_length;
+  cubePtr->vertices = out_vertices;
+  cubePtr->uvs = out_uvs;
+  cubePtr->normals = out_normals;
+
+  /* printf("output size is: %d\n", cubePtr->num_triangles); */
+  
   return true;
 }

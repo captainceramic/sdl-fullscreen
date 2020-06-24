@@ -14,6 +14,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 
+#include "cube.h"
 #include "object_loader.h"
 
 /* Global parameters */
@@ -24,29 +25,6 @@ const int sizeY = 1080;
 SDL_Window *window;
 SDL_GLContext *glContext;
 
-/* A C struct to hold the information about our cubes
-
-   Contains:
-   * An array of vertices
-   * An array of normals
-   * A pointer to a shader program
-
-*/
-typedef struct {
-  /* The cube contains:
-     - The address of the relevant shader program
-     - Pointer to an array of vertices
-     - Pointer to an array of normals
-     - Pointer to an array of uvs
-     - A model matrix (though I haven't worked out how to do that in plain C
-   */
-
-  uint shaderProgramAddress;
-  float **vertices;
-  float **normals;
-  float **uvs;
-  
-} Cube;
 
 void set_up() {
   SDL_Init(SDL_INIT_VIDEO);
@@ -95,7 +73,7 @@ Cube create_cube(char* cube_filename) {
   */
 
   Cube thisCube;
-  if(loadOBJ(cube_filename, thisCube.vertices, thisCube.uvs, thisCube.normals)) {
+  if(loadOBJ(cube_filename, &thisCube)) {
     printf("loaded cube from file: %s\n", cube_filename);
   } else {
     printf("ERROR: file load %s failed\n", cube_filename);
@@ -105,16 +83,29 @@ Cube create_cube(char* cube_filename) {
   
 }
 
+void destroy_cube(Cube * thisCube) {
+  /* We need to free up the dynamically created arrays in the cubes */
+  free(thisCube->vertices);
+  free(thisCube->uvs);
+  free(thisCube->normals);
+
+}
+
 int main(int argc, char* argv[]) {  
 
   set_up();
 
-  /* TB NOTE: Do I need to free the memory for these? */
   Cube cube_1 = create_cube("../data/cube.obj");
+  Cube cube_2 = create_cube("../data/cube.obj");
 
-  /* Have the cubes been created properly? */
-  printf("first number is: %f\n", cube_1.vertices[0]);
+  /* /\* Have the cubes been created properly? *\/ */
+  /* printf("number of triangles in cube 1: %d\n", cube_1.num_triangles); */
+  /* printf("number of triangles in cube 2: %d\n", cube_2.num_triangles); */
+  /* printf("first number is: %f\n", cube_1.vertices[0]); */
+  /* printf("second number is: %f\n", cube_1.vertices[1]); */
 
+  destroy_cube(&cube_1);
+  destroy_cube(&cube_2);
   clean_up();
 
   return 0;

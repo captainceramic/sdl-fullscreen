@@ -1,4 +1,5 @@
 opengles_fullscreen
 *.o
 data
+*~
 

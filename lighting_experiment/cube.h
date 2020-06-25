@@ -2,7 +2,7 @@
 #define CUBE_HEADER
 
 #include <gsl/gsl_matrix.h>
-
+#include <SDL/SDL_opengl.h>
 
 typedef struct {
   /* C struct to hold the information about our cubes:
@@ -13,12 +13,13 @@ typedef struct {
      - A model matrix (though I haven't worked out how to do that in plain C
    */
 
-  uint shaderProgramAddress;
+  GLuint shaderProgramAddress;
+  GLuint vertexVBO;
   uint num_triangles;
   gsl_matrix *model_matrix;
-  float *vertices;
-  float *normals;
-  float *uvs;
+  GLfloat *vertices;
+  GLfloat *normals;
+  GLfloat *uvs;
   
 } Cube;
 

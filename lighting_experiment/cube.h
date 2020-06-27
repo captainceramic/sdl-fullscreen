@@ -16,7 +16,7 @@ typedef struct {
   GLuint shaderProgramAddress;
   GLuint vertexVBO;
   uint num_triangles;
-  gsl_matrix *model_matrix;
+  gsl_matrix_float *model_matrix;
   GLfloat *vertices;
   GLfloat *normals;
   GLfloat *uvs;

@@ -93,8 +93,8 @@ Cube create_cube(char* cube_filename) {
   }
 
   /* Set the default model matrix as the identity matrix */
-  thisCube.model_matrix = gsl_matrix_calloc(4, 4);
-  gsl_matrix_set_identity(thisCube.model_matrix);
+  thisCube.model_matrix = gsl_matrix_float_calloc(4, 4);
+  gsl_matrix_float_set_identity(thisCube.model_matrix);
 
   /* Set up buffers for the vertices
      TB TODO: Buffers also for uvs and normals
@@ -117,35 +117,35 @@ void destroy_cube(Cube * thisCube) {
   free(thisCube->vertices);
   free(thisCube->uvs);
   free(thisCube->normals);
-  gsl_matrix_free(thisCube->model_matrix);
+  gsl_matrix_float_free(thisCube->model_matrix);
 }
 
-void create_view_matrix(gsl_matrix* view_matrix) {
+void create_view_matrix(gsl_matrix_float* view_matrix) {
   /* This is a function from
      https://www.3dgep.com/understanding-the-view-matrix/ 
   */
 
-  gsl_matrix* orientation = gsl_matrix_calloc(4, 4);
-  gsl_matrix_set_identity(orientation);
+  gsl_matrix_float* orientation = gsl_matrix_float_calloc(4, 4);
+  gsl_matrix_float_set_identity(orientation);
 
-  gsl_matrix* translation = gsl_matrix_calloc(4, 4);
-  gsl_matrix_set_identity(translation);
+  gsl_matrix_float* translation = gsl_matrix_float_calloc(4, 4);
+  gsl_matrix_float_set_identity(translation);
 
   /* Eye location is looking from the y axis, 5 units*/
-  gsl_matrix_set(translation, 1, 3, -5.0);
+  gsl_matrix_float_set(translation, 1, 3, -5.0);
 
   /* do the matrix multiplication */
   /* see: https://stackoverflow.com/questions/40687568/matrix-multiplication-using-gsl */
-  gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0,
+  gsl_blas_sgemm(CblasNoTrans, CblasNoTrans, 1.0,
 		 orientation, translation, 0.0,
 		 view_matrix); 
 
-  gsl_matrix_free(orientation);
-  gsl_matrix_free(translation);
+  gsl_matrix_float_free(orientation);
+  gsl_matrix_float_free(translation);
 }
 
-void create_projection_matrix(gsl_matrix* projection_matrix) {
-  gls_matrix_set_identity(projection_matrix);
+void create_projection_matrix(gsl_matrix_float* projection_matrix) {
+  gsl_matrix_float_set_identity(projection_matrix);
 }
 
 int main(int argc, char* argv[]) {  
@@ -156,10 +156,10 @@ int main(int argc, char* argv[]) {
   Cube cube_2 = create_cube("../data/cube.obj");
 
   /* Next up: we need view and projection matrices */
-  gsl_matrix* view_matrix = gsl_matrix_calloc(4, 4);
+  gsl_matrix_float* view_matrix = gsl_matrix_float_calloc(4, 4);
   create_view_matrix(view_matrix);
 
-  gsl_matrix* projection_matrix = gsl_matrix_calloc(4, 4);
+  gsl_matrix_float* projection_matrix = gsl_matrix_float_calloc(4, 4);
   create_projection_matrix(projection_matrix);
 
   /* Set up the openGLES shader program
@@ -172,7 +172,10 @@ int main(int argc, char* argv[]) {
      currently just for shader 1.
    */
   GLint position_attr_i = glGetAttribLocation(cube_1.shaderProgramAddress, "vPosition");
-
+  GLint model_mat_i = glGetAttribLocation(cube_1.shaderProgramAddress, "mat_model");
+  GLint view_mat_i = glGetAttribLocation(cube_1.shaderProgramAddress, "mat_view");
+  GLint projection_mat_i = glGetAttribLocation(cube_1.shaderProgramAddress, "mat_projection");
+  
   /* Now - a main animation loop! */
   bool shouldExit = false;
   SDL_Event event;
@@ -188,9 +191,11 @@ int main(int argc, char* argv[]) {
     }
 
     /* Next: apply the model, view and projection matrices
-       Plan: send the M, V and P matrices into the shaders
-     */
-
+       Plan: send the M, V and P matrices into the shaders */
+    glUniformMatrix4fv(model_mat_i, 1, GL_FALSE, &cube_1.model_matrix->data[0][0]);
+    glUniformMatrix4fv(view_mat_i, 1, GL_FALSE, &view_matrix->data[0][0]);
+    glUniformMatrix4fv(projection_mat_i, 1, GL_FALSE, &projection_matrix->data[0][0]);
+    
     /* Render cube 1 */
     glBindBuffer(GL_ARRAY_BUFFER, cube_1.vertexVBO);
     glVertexAttribPointer(position_attr_i, 3,
@@ -211,8 +216,8 @@ int main(int argc, char* argv[]) {
   /* Clean up functions */
   destroy_cube(&cube_1);
   destroy_cube(&cube_2);
-  gsl_matrix_free(view_matrix);
-  gsl_matrix_free(projection_matrix); 
+  gsl_matrix_float_free(view_matrix);
+  gsl_matrix_float_free(projection_matrix); 
   clean_up();
 
   return 0;

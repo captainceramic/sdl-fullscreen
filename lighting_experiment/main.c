@@ -92,9 +92,7 @@ Cube create_cube(char* cube_filename) {
   }
   
   /* Set the default model matrix as the identity matrix */
-  /* TB TODO: Not sure how to make this work! */
-  mat4 model_matrix = GLM_MAT4_IDENTITY_INIT;
-  thisCube.model_matrix = model_matrix;
+  glm_mat4_identity(thisCube.model_matrix);
   
   /* Set up buffers for the vertices
      TB TODO: Buffers also for uvs and normals
@@ -119,7 +117,7 @@ void destroy_cube(Cube * thisCube) {
   free(thisCube->normals);
 }
 
-mat4* create_view_matrix() {
+void create_view_matrix(mat4* view_matrix_ptr) {
   /* This is a function from
      https://www.3dgep.com/understanding-the-view-matrix/ 
   */
@@ -131,15 +129,11 @@ mat4* create_view_matrix() {
   translation[1][3] = -5.0f;
 
   /* do the matrix multiplication */
-  mat4 view_matrix = GLM_MAT4_IDENTITY_INIT;
-  glm_mat4_mul(orientation, translation, view_matrix);
-
-  return *view_matrix;
+  glm_mat4_mul(orientation, translation, *view_matrix_ptr);
 }
 
-mat4* create_projection_matrix() {
-  mat4 projection_matrix = GLM_MAT4_IDENTITY_INIT;
-  return *projection_matrix;
+void create_projection_matrix(mat4* projection_matrix_ptr) {
+  glm_mat4_identity(*projection_matrix_ptr);
 }
 
 int main(int argc, char* argv[]) {  
@@ -147,17 +141,20 @@ int main(int argc, char* argv[]) {
   set_up();
 
   Cube cube_1 = create_cube("../data/cube.obj");
-  Cube cube_2 = create_cube("../data/cube.obj");
+  /* Cube cube_2 = create_cube("../data/cube.obj"); */
 
   /* Next up: we need view and projection matrices */
-  mat4* view_matrix =  create_view_matrix();
-  mat4* projection_matrix = create_projection_matrix();
+  mat4 view_matrix = GLM_MAT4_IDENTITY_INIT;
+  create_view_matrix(&view_matrix);
+
+  mat4 projection_matrix = GLM_MAT4_IDENTITY_INIT;
+  create_projection_matrix(&projection_matrix);
 
   /* Set up the openGLES shader program
      and assign it to the relevant cubes */
   GLuint basicShader = load_shaders(vertexShaderPath, fragmentShaderPath);
   cube_1.shaderProgramAddress = basicShader;
-  cube_2.shaderProgramAddress = basicShader;
+  /* cube_2.shaderProgramAddress = basicShader; */
 
   /* Get the location of the vPosition attribute in the shader program
      currently just for shader 1.
@@ -166,6 +163,15 @@ int main(int argc, char* argv[]) {
   GLint model_mat_i = glGetAttribLocation(cube_1.shaderProgramAddress, "mat_model");
   GLint view_mat_i = glGetAttribLocation(cube_1.shaderProgramAddress, "mat_view");
   GLint projection_mat_i = glGetAttribLocation(cube_1.shaderProgramAddress, "mat_projection");
+
+  /* Let's check that our model matrix is working */
+  for(int i=0; i<4; i++) {
+    for(int j=0; j<4; j++) {
+      printf("\t%f\t", cube_1.model_matrix[i][j]);
+    }
+    printf("\n");
+  }
+ 
 
   /* Now - a main animation loop! */
   bool shouldExit = false;
@@ -180,21 +186,22 @@ int main(int argc, char* argv[]) {
 	break;
       }
     }
-
-    /* Next: apply the model, view and projection matrices
-       Plan: send the M, V and P matrices into the shaders */
-    glUniformMatrix4fv(model_mat_i, 1, GL_TRUE, cube_1.model_matrix);
-    glUniformMatrix4fv(view_mat_i, 1, GL_TRUE, view_matrix);
-    glUniformMatrix4fv(projection_mat_i, 1, GL_TRUE, projection_matrix);
-
+   
     /* Render cube 1 */
+    glUseProgram(cube_1.shaderProgramAddress);
     glBindBuffer(GL_ARRAY_BUFFER, cube_1.vertexVBO);
     glVertexAttribPointer(position_attr_i, 3,
     			  GL_FLOAT, GL_FALSE,
     			  3*sizeof(GLfloat),
     			  (void*) (0*sizeof(GLfloat)));
     glEnableVertexAttribArray(position_attr_i);
-    glUseProgram(cube_1.shaderProgramAddress);
+
+    /* Next: apply the model, view and projection matrices
+       Plan: send the M, V and P matrices into the shaders */
+    glUniformMatrix4fv(model_mat_i, 1, GL_FALSE, (float *)cube_1.model_matrix);
+    glUniformMatrix4fv(view_mat_i, 1, GL_FALSE, view_matrix[0]);
+    glUniformMatrix4fv(projection_mat_i, 1, GL_FALSE, projection_matrix[0]);
+    
     glDrawArrays(GL_TRIANGLES, 0, cube_1.num_triangles);
 	
     SDL_GL_SwapWindow(window);
@@ -205,7 +212,7 @@ int main(int argc, char* argv[]) {
  
   /* Clean up functions */
   destroy_cube(&cube_1);
-  destroy_cube(&cube_2);
+  /* destroy_cube(&cube_2); */
   clean_up();
 
   return 0;

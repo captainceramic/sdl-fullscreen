@@ -7,20 +7,21 @@
 typedef struct {
   /* C struct to hold the information about our cubes:
      - The address of the relevant shader program
+     - The ID of the relevant VBOs for data.
+     - The number of triangles in the cube
      - Pointer to an array of vertices
      - Pointer to an array of normals
      - Pointer to an array of uvs
-     - A model matrix (though I haven't worked out how to do that in plain C
+     - A model matrix
    */
 
   GLuint shaderProgramAddress;
   GLuint vertexVBO;
   uint num_triangles;
-  mat4 model_matrix;
   GLfloat *vertices;
   GLfloat *normals;
   GLfloat *uvs;
-  
+  mat4 model_matrix;  
 } Cube;
 
 #endif

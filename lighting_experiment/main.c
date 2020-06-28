@@ -13,8 +13,7 @@
 
 #include <GLES2/gl2.h>
 #include <SDL2/SDL.h>
-#include <gsl/gsl_matrix.h>
-#include <gsl/gsl_blas.h>
+#include <cglm/cglm.h>
 
 #include "cube.h"
 #include "object_loader.h"
@@ -91,11 +90,12 @@ Cube create_cube(char* cube_filename) {
   } else {
     printf("ERROR: file load %s failed\n", cube_filename);
   }
-
+  
   /* Set the default model matrix as the identity matrix */
-  thisCube.model_matrix = gsl_matrix_float_calloc(4, 4);
-  gsl_matrix_float_set_identity(thisCube.model_matrix);
-
+  /* TB TODO: Not sure how to make this work! */
+  mat4 model_matrix = GLM_MAT4_IDENTITY_INIT;
+  thisCube.model_matrix = model_matrix;
+  
   /* Set up buffers for the vertices
      TB TODO: Buffers also for uvs and normals
  */
@@ -117,35 +117,29 @@ void destroy_cube(Cube * thisCube) {
   free(thisCube->vertices);
   free(thisCube->uvs);
   free(thisCube->normals);
-  gsl_matrix_float_free(thisCube->model_matrix);
 }
 
-void create_view_matrix(gsl_matrix_float* view_matrix) {
+mat4* create_view_matrix() {
   /* This is a function from
      https://www.3dgep.com/understanding-the-view-matrix/ 
   */
 
-  gsl_matrix_float* orientation = gsl_matrix_float_calloc(4, 4);
-  gsl_matrix_float_set_identity(orientation);
-
-  gsl_matrix_float* translation = gsl_matrix_float_calloc(4, 4);
-  gsl_matrix_float_set_identity(translation);
+  mat4 orientation = GLM_MAT4_IDENTITY_INIT;
+  mat4 translation = GLM_MAT4_IDENTITY_INIT;
 
   /* Eye location is looking from the y axis, 5 units*/
-  gsl_matrix_float_set(translation, 1, 3, -5.0);
+  translation[1][3] = -5.0f;
 
   /* do the matrix multiplication */
-  /* see: https://stackoverflow.com/questions/40687568/matrix-multiplication-using-gsl */
-  gsl_blas_sgemm(CblasNoTrans, CblasNoTrans, 1.0,
-		 orientation, translation, 0.0,
-		 view_matrix); 
+  mat4 view_matrix = GLM_MAT4_IDENTITY_INIT;
+  glm_mat4_mul(orientation, translation, view_matrix);
 
-  gsl_matrix_float_free(orientation);
-  gsl_matrix_float_free(translation);
+  return *view_matrix;
 }
 
-void create_projection_matrix(gsl_matrix_float* projection_matrix) {
-  gsl_matrix_float_set_identity(projection_matrix);
+mat4* create_projection_matrix() {
+  mat4 projection_matrix = GLM_MAT4_IDENTITY_INIT;
+  return *projection_matrix;
 }
 
 int main(int argc, char* argv[]) {  
@@ -156,11 +150,8 @@ int main(int argc, char* argv[]) {
   Cube cube_2 = create_cube("../data/cube.obj");
 
   /* Next up: we need view and projection matrices */
-  gsl_matrix_float* view_matrix = gsl_matrix_float_calloc(4, 4);
-  create_view_matrix(view_matrix);
-
-  gsl_matrix_float* projection_matrix = gsl_matrix_float_calloc(4, 4);
-  create_projection_matrix(projection_matrix);
+  mat4* view_matrix =  create_view_matrix();
+  mat4* projection_matrix = create_projection_matrix();
 
   /* Set up the openGLES shader program
      and assign it to the relevant cubes */
@@ -175,14 +166,14 @@ int main(int argc, char* argv[]) {
   GLint model_mat_i = glGetAttribLocation(cube_1.shaderProgramAddress, "mat_model");
   GLint view_mat_i = glGetAttribLocation(cube_1.shaderProgramAddress, "mat_view");
   GLint projection_mat_i = glGetAttribLocation(cube_1.shaderProgramAddress, "mat_projection");
-  
+
   /* Now - a main animation loop! */
   bool shouldExit = false;
   SDL_Event event;
   while(!shouldExit) {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
- 
+
     while (SDL_PollEvent(&event) != 0) {
       if(event.type == SDL_KEYDOWN) {
 	shouldExit = true;
@@ -192,10 +183,10 @@ int main(int argc, char* argv[]) {
 
     /* Next: apply the model, view and projection matrices
        Plan: send the M, V and P matrices into the shaders */
-    glUniformMatrix4fv(model_mat_i, 1, GL_FALSE, &cube_1.model_matrix->data[0][0]);
-    glUniformMatrix4fv(view_mat_i, 1, GL_FALSE, &view_matrix->data[0][0]);
-    glUniformMatrix4fv(projection_mat_i, 1, GL_FALSE, &projection_matrix->data[0][0]);
-    
+    glUniformMatrix4fv(model_mat_i, 1, GL_TRUE, cube_1.model_matrix);
+    glUniformMatrix4fv(view_mat_i, 1, GL_TRUE, view_matrix);
+    glUniformMatrix4fv(projection_mat_i, 1, GL_TRUE, projection_matrix);
+
     /* Render cube 1 */
     glBindBuffer(GL_ARRAY_BUFFER, cube_1.vertexVBO);
     glVertexAttribPointer(position_attr_i, 3,
@@ -211,13 +202,10 @@ int main(int argc, char* argv[]) {
     glDisableVertexAttribArray(position_attr_i);
 
   }
-
-   
+ 
   /* Clean up functions */
   destroy_cube(&cube_1);
   destroy_cube(&cube_2);
-  gsl_matrix_float_free(view_matrix);
-  gsl_matrix_float_free(projection_matrix); 
   clean_up();
 
   return 0;

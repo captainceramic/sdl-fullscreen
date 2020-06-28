@@ -1,7 +1,7 @@
 #ifndef CUBE_HEADER
 #define CUBE_HEADER
 
-#include <gsl/gsl_matrix.h>
+#include <cglm/cglm.h>
 #include <SDL/SDL_opengl.h>
 
 typedef struct {
@@ -16,7 +16,7 @@ typedef struct {
   GLuint shaderProgramAddress;
   GLuint vertexVBO;
   uint num_triangles;
-  gsl_matrix_float *model_matrix;
+  mat4 model_matrix;
   GLfloat *vertices;
   GLfloat *normals;
   GLfloat *uvs;

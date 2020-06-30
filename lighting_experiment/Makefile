@@ -1,7 +1,7 @@
 export PKG_CONFIG_PATH = /opt/vc/lib/pkgconfig
 CC = gcc -Wall -std=gnu11
 CFLAGS = `sdl2-config --cflags` -I ../shader_loader
-LDFLAGS =  `sdl2-config --libs` `pkg-config brcmglesv2 --libs`
+LDFLAGS =  `sdl2-config --libs` `pkg-config brcmglesv2 --libs` -lm
 
 
 lighting_test.o: main.c object_loader.h

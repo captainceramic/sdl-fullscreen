@@ -4,7 +4,7 @@ CFLAGS = `sdl2-config --cflags` -I ../shader_loader
 LDFLAGS =  `sdl2-config --libs` `pkg-config brcmglesv2 --libs` -lm
 
 
-lighting_test.o: main.c object_loader.h
+lighting_test.o: main.c object_loader.h cube.h
 	$(CC) ${CFLAGS} -o lighting_test.o -c main.c
 
 shader_loader.o: ../shader_loader/shader_loader.c

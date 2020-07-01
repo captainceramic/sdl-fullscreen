@@ -2,7 +2,7 @@
 #define CUBE_HEADER
 
 #include <cglm/cglm.h>
-#include <SDL/SDL_opengl.h>
+#include <GLES2/gl2.h>
 
 typedef struct {
   /* C struct to hold the information about our cubes:
@@ -18,6 +18,8 @@ typedef struct {
   GLuint shaderProgramAddress;
   GLuint vertexVBO;
   uint num_triangles;
+
+  /* These pointers in the struct will be aligned next to each other */
   GLfloat *vertices;
   GLfloat *normals;
   GLfloat *uvs;

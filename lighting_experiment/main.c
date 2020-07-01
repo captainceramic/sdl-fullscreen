@@ -90,6 +90,16 @@ Cube create_cube(char* cube_filename) {
   } else {
     printf("ERROR: file load %s failed\n", cube_filename);
   }
+
+  printf("At creation, cube vertices are:\n");
+  for(int i=0; i<thisCube.num_triangles; i++) {
+    printf("[ %f %f %f ]\n",
+	   thisCube.vertices[(i*3) + 0],
+      	   thisCube.vertices[(i*3) + 1],
+    	   thisCube.vertices[(i*3) + 2]);
+  }
+
+
   
   /* Set the default model matrix as the identity matrix */
   glm_mat4_identity(thisCube.model_matrix);
@@ -100,11 +110,10 @@ Cube create_cube(char* cube_filename) {
   glGenBuffers(1, &thisCube.vertexVBO);
   glBindBuffer(GL_ARRAY_BUFFER, thisCube.vertexVBO);
 
-  size_t dataSize = thisCube.num_triangles * 3 * sizeof(GLfloat);
+  size_t dataSize = thisCube.num_triangles * 3 * 3* sizeof(GLfloat);
+
   glBufferData(GL_ARRAY_BUFFER, dataSize,
     	       thisCube.vertices, GL_STATIC_DRAW);
-  
-  printf("size of cube buffer data: %d\n", dataSize);
 	     
   return thisCube;
   
@@ -167,15 +176,6 @@ int main(int argc, char* argv[]) {
   GLint view_ix = glGetUniformLocation(basicShader, "view");
   GLint perspective_ix = glGetUniformLocation(basicShader, "perspective");
 
-  /* Set up the vertex buffer for cube 1 */
-  glGenBuffers(1, &cube_1.vertexVBO);
-  glBindBuffer(GL_ARRAY_BUFFER, cube_1.vertexVBO);
-  // Send the vertices to OpenGL.
-  glBufferData(GL_ARRAY_BUFFER,
-	       cube_1.num_triangles * 3 * 3* sizeof(float),
-	       cube_1.vertices,
-	       GL_STATIC_DRAW);
-  
   /* Now - a main animation loop! */
   bool shouldExit = false;
   SDL_Event event;
@@ -193,7 +193,6 @@ int main(int argc, char* argv[]) {
    
     /* Render cube 1 */     
     glUseProgram(cube_1.shaderProgramAddress);
-
     glEnableVertexAttribArray(position_attr_i);
     glBindBuffer(GL_ARRAY_BUFFER, cube_1.vertexVBO);
     glVertexAttribPointer(position_attr_i, 3,
@@ -209,8 +208,7 @@ int main(int argc, char* argv[]) {
 	       0.05f,
 	       rotAxis);
 
-    /* Next: apply the model, view and projection matrices
-       Plan: send the M, V and P matrices into the shaders */
+    /* Next: apply the model, view and projection matrices */
     glUniformMatrix4fv(model_ix, 1, GL_FALSE, cube_1.model_matrix[0]);
     glUniformMatrix4fv(view_ix, 1, GL_FALSE, &view_matrix[0][0]);
     glUniformMatrix4fv(perspective_ix, 1, GL_FALSE, &projection_matrix[0][0]);

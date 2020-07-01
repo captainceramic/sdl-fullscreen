@@ -166,13 +166,6 @@ bool loadOBJ(const char* path, Cube* cubePtr) {
     out_normals[(3*i)+8] = temp_normals[normal_ix_3][2];
   }
 
-  /* Test the output values: */
-  /* printf("test output values:\n"); */
-  /* printf("%f %f %f\n", */
-  /* 	 out_vertices[4], */
-  /* 	 out_vertices[5], */
-  /* 	 out_vertices[6]); */
-  
   /* Free all our memory */
   for(int i = 0; i<max_length; i++) {
     free(temp_vertices[i]);
@@ -184,11 +177,10 @@ bool loadOBJ(const char* path, Cube* cubePtr) {
 
   /* Update the output pointers. */
   cubePtr->num_triangles = output_length;
+
   cubePtr->vertices = out_vertices;
   cubePtr->uvs = out_uvs;
   cubePtr->normals = out_normals;
 
-  /* printf("output size is: %d\n", cubePtr->num_triangles); */
-  
   return true;
 }

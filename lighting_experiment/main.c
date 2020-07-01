@@ -231,7 +231,12 @@ int main(int argc, char* argv[]) {
   mv_vector[0] = 3.0f;
   glm_translate(cube_2.model_matrix, mv_vector);
 
-  /* TB TODO: What about a FPS counter? */
+  unsigned long int time_now = SDL_GetTicks();
+  unsigned long int num_frames = 0;
+  int time_gap;
+  unsigned int new_time;
+  int frame_max = 5 * 60;
+  
   while(!shouldExit) {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -287,7 +292,15 @@ int main(int argc, char* argv[]) {
     glDisableVertexAttribArray(position_attr_blue);
     
     SDL_GL_SwapWindow(window);
-   
+
+    num_frames += 1;
+    if(num_frames == frame_max) {
+      new_time = SDL_GetTicks();
+      time_gap = (new_time - time_now) / 1000;
+      printf("current FPS: %.2f\n", (float) frame_max / (float) time_gap);
+      time_now = new_time;
+      num_frames = 0;
+    };   
   }
  
   /* Clean up functions */

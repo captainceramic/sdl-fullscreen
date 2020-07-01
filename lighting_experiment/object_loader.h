@@ -109,24 +109,20 @@ bool loadOBJ(const char* path, Cube* cubePtr) {
   float *out_uvs =(float *) calloc(3*2*output_length, sizeof(float));
   float *out_normals = (float *) calloc(3*3*output_length, sizeof(float));
   
-  /* Check the out vertices are working OK */
-  /* for(int i=0; i<9*output_length; i++) { */
-  /*   printf("%f\n", out_vertices[i]); */
-  /* } */
-  
   for(int i=0; i<output_length; i++) {
 
-    int vertex_ix_1 = output_indices[(9*i)];
-    int uv_ix_1 = output_indices[(9*i)+1];	
-    int normal_ix_1 = output_indices[(9*i)+2];
+    /* OBJ files index from 1, so need to subtract one from the indices */
+    int vertex_ix_1 = output_indices[(9*i)]-1 ;
+    int uv_ix_1 = output_indices[(9*i)+1]-1;	
+    int normal_ix_1 = output_indices[(9*i)+2]-1;
 
-    int vertex_ix_2 = output_indices[(9*i)+3];
-    int uv_ix_2 = output_indices[(9*i)+4];	
-    int normal_ix_2 = output_indices[(9*i)+5];
+    int vertex_ix_2 = output_indices[(9*i)+3]-1;
+    int uv_ix_2 = output_indices[(9*i)+4]-1;	
+    int normal_ix_2 = output_indices[(9*i)+5]-1;
     
-    int vertex_ix_3 = output_indices[(9*i)+6];
-    int uv_ix_3 = output_indices[(9*i)+7];	
-    int normal_ix_3 = output_indices[(9*i)+8];
+    int vertex_ix_3 = output_indices[(9*i)+6]-1;
+    int uv_ix_3 = output_indices[(9*i)+7]-1;	
+    int normal_ix_3 = output_indices[(9*i)+8]-1;
 
     /* Now write to the output arrays */
     out_vertices[(9*i)] = temp_vertices[vertex_ix_1][0];

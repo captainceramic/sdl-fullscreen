@@ -23,7 +23,8 @@
 const int sizeX = 1920;
 const int sizeY = 1080;
 const char* vertexShaderPath = "shaders/shader.vert";
-const char* fragmentShaderPath = "shaders/shader.frag";
+const char* redShaderPath = "shaders/red_shader.frag";
+const char* blueShaderPath = "shaders/blue_shader.frag";
 
 /* Set up global variables for the window and context. */
 SDL_Window *window;
@@ -202,22 +203,35 @@ int main(int argc, char* argv[]) {
 
   /* Set up the openGLES shader program
      and assign it to the relevant cubes */
-  GLuint basicShader = load_shaders(vertexShaderPath, fragmentShaderPath);
-  cube_1.shaderProgramAddress = basicShader;
-  cube_2.shaderProgramAddress = basicShader;
+  GLuint shader_red = load_shaders(vertexShaderPath, redShaderPath);
+  cube_1.shaderProgramAddress = shader_red;
+
+  GLuint shader_blue = load_shaders(vertexShaderPath, blueShaderPath);
+  cube_2.shaderProgramAddress = shader_blue;
 
   /* Get the location of the vPosition attribute in the shader program */
-  GLint position_attr_i = glGetAttribLocation(basicShader, "vPosition");
+  GLint position_attr_red = glGetAttribLocation(shader_red, "vPosition");
+  GLint position_attr_blue = glGetAttribLocation(shader_blue, "vPosition");
 
   /* Get the location for the uniforms */
-  GLint model_ix = glGetUniformLocation(basicShader, "model");
-  GLint view_ix = glGetUniformLocation(basicShader, "view");
-  GLint perspective_ix = glGetUniformLocation(basicShader, "perspective");
+  GLint model_ix_red = glGetUniformLocation(shader_red, "model");
+  GLint view_ix_red = glGetUniformLocation(shader_red, "view");
+  GLint perspective_ix_red = glGetUniformLocation(shader_red, "perspective");
 
+  GLint model_ix_blue = glGetUniformLocation(shader_blue, "model");
+  GLint view_ix_blue = glGetUniformLocation(shader_blue, "view");
+  GLint perspective_ix_blue = glGetUniformLocation(shader_blue, "perspective");
+  
   /* Now - a main animation loop! */
   bool shouldExit = false;
   SDL_Event event;
 
+  /* I want to move the second cube across */
+  vec3 mv_vector = GLM_VEC3_ZERO_INIT;
+  mv_vector[0] = 3.0f;
+  glm_translate(cube_2.model_matrix, mv_vector);
+
+  /* TB TODO: What about a FPS counter? */
   while(!shouldExit) {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -231,9 +245,9 @@ int main(int argc, char* argv[]) {
    
     /* Render cube 1 */     
     glUseProgram(cube_1.shaderProgramAddress);
-    glEnableVertexAttribArray(position_attr_i);
+    glEnableVertexAttribArray(position_attr_red);
     glBindBuffer(GL_ARRAY_BUFFER, cube_1.vertexVBO);
-    glVertexAttribPointer(position_attr_i, 3,
+    glVertexAttribPointer(position_attr_red, 3,
 			  GL_FLOAT, GL_FALSE,
 			  3*sizeof(GLfloat),
 			  (void*)(0*sizeof(GLfloat)));
@@ -247,15 +261,31 @@ int main(int argc, char* argv[]) {
 	       rotAxis);
 
     /* Next: apply the model, view and projection matrices */
-    glUniformMatrix4fv(model_ix, 1, GL_FALSE, cube_1.model_matrix[0]);
-    glUniformMatrix4fv(view_ix, 1, GL_FALSE, view_matrix[0]);
-    glUniformMatrix4fv(perspective_ix, 1, GL_FALSE, projection_matrix[0]);
+    glUniformMatrix4fv(model_ix_red, 1, GL_FALSE, cube_1.model_matrix[0]);
+    glUniformMatrix4fv(view_ix_red, 1, GL_FALSE, view_matrix[0]);
+    glUniformMatrix4fv(perspective_ix_red, 1, GL_FALSE, projection_matrix[0]);
 
     glDrawArrays(GL_TRIANGLES, 0, 3 * cube_1.num_triangles);
      
-    glDisableVertexAttribArray(position_attr_i);
+    glDisableVertexAttribArray(position_attr_red);
 
-    /* Rendering cube 2 will happen here */
+    /* Render cube 2  */
+    glUseProgram(cube_2.shaderProgramAddress);
+    glEnableVertexAttribArray(position_attr_blue);
+    glBindBuffer(GL_ARRAY_BUFFER, cube_2.vertexVBO);
+    glVertexAttribPointer(position_attr_blue, 3,
+			  GL_FLOAT, GL_FALSE,
+			  3*sizeof(GLfloat),
+			  (void*)(0*sizeof(GLfloat)));
+
+    glUniformMatrix4fv(model_ix_blue, 1, GL_FALSE, cube_2.model_matrix[0]);
+    glUniformMatrix4fv(view_ix_blue, 1, GL_FALSE, view_matrix[0]);
+    glUniformMatrix4fv(perspective_ix_blue, 1, GL_FALSE, projection_matrix[0]);
+    
+    glDrawArrays(GL_TRIANGLES, 0, 3 * cube_2.num_triangles);
+     
+    glDisableVertexAttribArray(position_attr_blue);
+    
     SDL_GL_SwapWindow(window);
    
   }

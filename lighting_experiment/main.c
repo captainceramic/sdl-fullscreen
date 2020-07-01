@@ -91,30 +91,68 @@ Cube create_cube(char* cube_filename) {
     printf("ERROR: file load %s failed\n", cube_filename);
   }
 
-  printf("At creation, cube vertices are:\n");
+  printf("\nAt creation, cube vertices are:\n");
   for(int i=0; i<thisCube.num_triangles; i++) {
-    printf("[ %f %f %f ]\n",
-	   thisCube.vertices[(i*3) + 0],
-      	   thisCube.vertices[(i*3) + 1],
-    	   thisCube.vertices[(i*3) + 2]);
+    printf("[ (%.2f %.2f %.2f) (%.2f %.2f %.2f) (%.2f %.2f %.2f) ]\n",
+	   thisCube.vertices[(i*9) + 0],
+      	   thisCube.vertices[(i*9) + 1],
+    	   thisCube.vertices[(i*9) + 2],
+	   thisCube.vertices[(i*9) + 3],
+      	   thisCube.vertices[(i*9) + 4],
+    	   thisCube.vertices[(i*9) + 5],
+   	   thisCube.vertices[(i*9) + 6],
+      	   thisCube.vertices[(i*9) + 7],
+    	   thisCube.vertices[(i*9) + 8]);
+  }
+  
+  printf("\nAt creation, cube normals are:\n");
+  for(int i=0; i<thisCube.num_triangles; i++) {
+    printf("[ (%.2f %.2f %.2f) (%.2f %.2f %.2f) (%.2f %.2f %.2f) ]\n",
+	   thisCube.normals[(i*9) + 0],
+      	   thisCube.normals[(i*9) + 1],
+    	   thisCube.normals[(i*9) + 2],
+	   thisCube.normals[(i*9) + 3],
+      	   thisCube.normals[(i*9) + 4],
+    	   thisCube.normals[(i*9) + 5],
+   	   thisCube.normals[(i*9) + 6],
+      	   thisCube.normals[(i*9) + 7],
+    	   thisCube.normals[(i*9) + 8]);
   }
 
+  printf("\nAt creation, cube uvs are:\n");
+  for(int i=0; i<thisCube.num_triangles; i++) {
+    printf("[ (%.2f %.2f %.2f) (%.2f %.2f %.2f)\n",
+	   thisCube.uvs[(i*6) + 0],
+      	   thisCube.uvs[(i*6) + 1],
+    	   thisCube.uvs[(i*6) + 2],
+	   thisCube.uvs[(i*6) + 3],
+      	   thisCube.uvs[(i*6) + 4],
+    	   thisCube.uvs[(i*6) + 5]);
+  }
 
   
   /* Set the default model matrix as the identity matrix */
   glm_mat4_identity(thisCube.model_matrix);
   
-  /* Set up buffers for the vertices
-     TB TODO: Buffers also for uvs and normals
- */
+  /* Set up buffers for the vertices, normals and uvs */
+  size_t vertexDataSize = thisCube.num_triangles * 3 * 3* sizeof(GLfloat);
+  size_t uvDataSize = thisCube.num_triangles * 3 * 3* sizeof(GLfloat);
+
   glGenBuffers(1, &thisCube.vertexVBO);
   glBindBuffer(GL_ARRAY_BUFFER, thisCube.vertexVBO);
-
-  size_t dataSize = thisCube.num_triangles * 3 * 3* sizeof(GLfloat);
-
-  glBufferData(GL_ARRAY_BUFFER, dataSize,
+  glBufferData(GL_ARRAY_BUFFER, vertexDataSize,
     	       thisCube.vertices, GL_STATIC_DRAW);
-	     
+  
+  glGenBuffers(1, &thisCube.normalVBO);
+  glBindBuffer(GL_ARRAY_BUFFER, thisCube.normalVBO);
+  glBufferData(GL_ARRAY_BUFFER, vertexDataSize,
+    	       thisCube.normals, GL_STATIC_DRAW);
+  
+  glGenBuffers(1, &thisCube.uvVBO);
+  glBindBuffer(GL_ARRAY_BUFFER, thisCube.uvVBO);
+  glBufferData(GL_ARRAY_BUFFER, uvDataSize,
+	       thisCube.uvs, GL_STATIC_DRAW);
+  
   return thisCube;
   
 }
@@ -210,8 +248,8 @@ int main(int argc, char* argv[]) {
 
     /* Next: apply the model, view and projection matrices */
     glUniformMatrix4fv(model_ix, 1, GL_FALSE, cube_1.model_matrix[0]);
-    glUniformMatrix4fv(view_ix, 1, GL_FALSE, &view_matrix[0][0]);
-    glUniformMatrix4fv(perspective_ix, 1, GL_FALSE, &projection_matrix[0][0]);
+    glUniformMatrix4fv(view_ix, 1, GL_FALSE, view_matrix[0]);
+    glUniformMatrix4fv(perspective_ix, 1, GL_FALSE, projection_matrix[0]);
 
     glDrawArrays(GL_TRIANGLES, 0, 3 * cube_1.num_triangles);
      

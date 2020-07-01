@@ -102,7 +102,7 @@ bool loadOBJ(const char* path, Cube* cubePtr) {
 	 vert_ix, uv_ix, normal_ix);
   
   uint output_length = output_ix / 9;
-  printf("output size must be %d\n", output_length);
+  printf("output length must be %d\n", output_length);
   
   /* Now set up the outputs - straightforward arrays */
   float *out_vertices = (float *) calloc(3*3*output_length, sizeof(float));
@@ -128,42 +128,33 @@ bool loadOBJ(const char* path, Cube* cubePtr) {
     int uv_ix_3 = output_indices[(9*i)+7];	
     int normal_ix_3 = output_indices[(9*i)+8];
 
-    /* printf("vertex ix:\n"); */
-    /* printf("%d %d %d\n", vertex_ix_1, vertex_ix_2, vertex_ix_3); */
-
-    /* printf("uv ix:\n"); */
-    /* printf("%d %d %d\n", uv_ix_1, uv_ix_2, uv_ix_3); */
-
-    /* printf("normal ix:\n"); */
-    /* printf("%d %d %d\n", normal_ix_1, normal_ix_2, normal_ix_3); */
-    
     /* Now write to the output arrays */
-    out_vertices[(3*i)] = temp_vertices[vertex_ix_1][0];
-    out_vertices[(3*i)+1] = temp_vertices[vertex_ix_1][1];
-    out_vertices[(3*i)+2] = temp_vertices[vertex_ix_1][2];
-    out_vertices[(3*i)+3] = temp_vertices[vertex_ix_2][0];
-    out_vertices[(3*i)+4] = temp_vertices[vertex_ix_2][1];
-    out_vertices[(3*i)+5] = temp_vertices[vertex_ix_2][2];
-    out_vertices[(3*i)+6] = temp_vertices[vertex_ix_3][0];
-    out_vertices[(3*i)+7] = temp_vertices[vertex_ix_3][1];
-    out_vertices[(3*i)+8] = temp_vertices[vertex_ix_3][2];
+    out_vertices[(9*i)] = temp_vertices[vertex_ix_1][0];
+    out_vertices[(9*i)+1] = temp_vertices[vertex_ix_1][1];
+    out_vertices[(9*i)+2] = temp_vertices[vertex_ix_1][2];
+    out_vertices[(9*i)+3] = temp_vertices[vertex_ix_2][0];
+    out_vertices[(9*i)+4] = temp_vertices[vertex_ix_2][1];
+    out_vertices[(9*i)+5] = temp_vertices[vertex_ix_2][2];
+    out_vertices[(9*i)+6] = temp_vertices[vertex_ix_3][0];
+    out_vertices[(9*i)+7] = temp_vertices[vertex_ix_3][1];
+    out_vertices[(9*i)+8] = temp_vertices[vertex_ix_3][2];
     
-    out_uvs[(2*i)] = temp_vertices[uv_ix_1][0];
-    out_uvs[(2*i)+1] = temp_vertices[uv_ix_1][0];
-    out_uvs[(2*i)+2] = temp_vertices[uv_ix_2][1];
-    out_uvs[(2*i)+3] = temp_vertices[uv_ix_2][1];
-    out_uvs[(2*i)+4] = temp_vertices[uv_ix_3][2];
-    out_uvs[(2*i)+5] = temp_vertices[uv_ix_3][2];
+    out_uvs[(6*i)] = temp_vertices[uv_ix_1][0];
+    out_uvs[(6*i)+1] = temp_vertices[uv_ix_1][0];
+    out_uvs[(6*i)+2] = temp_vertices[uv_ix_2][1];
+    out_uvs[(6*i)+3] = temp_vertices[uv_ix_2][1];
+    out_uvs[(6*i)+4] = temp_vertices[uv_ix_3][2];
+    out_uvs[(6*i)+5] = temp_vertices[uv_ix_3][2];
 
-    out_normals[(3*i)] = temp_normals[normal_ix_1][0];
-    out_normals[(3*i)+1] = temp_normals[normal_ix_1][1];
-    out_normals[(3*i)+2] = temp_normals[normal_ix_1][2];
-    out_normals[(3*i)+3] = temp_normals[normal_ix_2][0];
-    out_normals[(3*i)+4] = temp_normals[normal_ix_2][1];
-    out_normals[(3*i)+5] = temp_normals[normal_ix_2][2];
-    out_normals[(3*i)+6] = temp_normals[normal_ix_3][0];
-    out_normals[(3*i)+7] = temp_normals[normal_ix_3][1];
-    out_normals[(3*i)+8] = temp_normals[normal_ix_3][2];
+    out_normals[(9*i)] = temp_normals[normal_ix_1][0];
+    out_normals[(9*i)+1] = temp_normals[normal_ix_1][1];
+    out_normals[(9*i)+2] = temp_normals[normal_ix_1][2];
+    out_normals[(9*i)+3] = temp_normals[normal_ix_2][0];
+    out_normals[(9*i)+4] = temp_normals[normal_ix_2][1];
+    out_normals[(9*i)+5] = temp_normals[normal_ix_2][2];
+    out_normals[(9*i)+6] = temp_normals[normal_ix_3][0];
+    out_normals[(9*i)+7] = temp_normals[normal_ix_3][1];
+    out_normals[(9*i)+8] = temp_normals[normal_ix_3][2];
   }
 
   /* Free all our memory */

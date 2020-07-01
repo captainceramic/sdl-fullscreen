@@ -17,8 +17,10 @@ typedef struct {
 
   GLuint shaderProgramAddress;
   GLuint vertexVBO;
+  GLuint normalVBO;
+  GLuint uvVBO;
   uint num_triangles;
-
+  
   /* These pointers in the struct will be aligned next to each other */
   GLfloat *vertices;
   GLfloat *normals;

@@ -23,8 +23,7 @@
 const int sizeX = 1920;
 const int sizeY = 1080;
 const char* vertexShaderPath = "shaders/shader.vert";
-const char* redShaderPath = "shaders/red_shader.frag";
-const char* blueShaderPath = "shaders/blue_shader.frag";
+const char* lightingShaderPath = "shaders/lighting_shader.frag";
 
 /* Set up global variables for the window and context. */
 SDL_Window *window;
@@ -92,46 +91,6 @@ Cube create_cube(char* cube_filename) {
     printf("ERROR: file load %s failed\n", cube_filename);
   }
 
-  printf("\nAt creation, cube vertices are:\n");
-  for(int i=0; i<thisCube.num_triangles; i++) {
-    printf("[ (%.2f %.2f %.2f) (%.2f %.2f %.2f) (%.2f %.2f %.2f) ]\n",
-	   thisCube.vertices[(i*9) + 0],
-      	   thisCube.vertices[(i*9) + 1],
-    	   thisCube.vertices[(i*9) + 2],
-	   thisCube.vertices[(i*9) + 3],
-      	   thisCube.vertices[(i*9) + 4],
-    	   thisCube.vertices[(i*9) + 5],
-   	   thisCube.vertices[(i*9) + 6],
-      	   thisCube.vertices[(i*9) + 7],
-    	   thisCube.vertices[(i*9) + 8]);
-  }
-  
-  printf("\nAt creation, cube normals are:\n");
-  for(int i=0; i<thisCube.num_triangles; i++) {
-    printf("[ (%.2f %.2f %.2f) (%.2f %.2f %.2f) (%.2f %.2f %.2f) ]\n",
-	   thisCube.normals[(i*9) + 0],
-      	   thisCube.normals[(i*9) + 1],
-    	   thisCube.normals[(i*9) + 2],
-	   thisCube.normals[(i*9) + 3],
-      	   thisCube.normals[(i*9) + 4],
-    	   thisCube.normals[(i*9) + 5],
-   	   thisCube.normals[(i*9) + 6],
-      	   thisCube.normals[(i*9) + 7],
-    	   thisCube.normals[(i*9) + 8]);
-  }
-
-  printf("\nAt creation, cube uvs are:\n");
-  for(int i=0; i<thisCube.num_triangles; i++) {
-    printf("[ (%.2f %.2f %.2f) (%.2f %.2f %.2f)\n",
-	   thisCube.uvs[(i*6) + 0],
-      	   thisCube.uvs[(i*6) + 1],
-    	   thisCube.uvs[(i*6) + 2],
-	   thisCube.uvs[(i*6) + 3],
-      	   thisCube.uvs[(i*6) + 4],
-    	   thisCube.uvs[(i*6) + 5]);
-  }
-
-  
   /* Set the default model matrix as the identity matrix */
   glm_mat4_identity(thisCube.model_matrix);
   
@@ -203,33 +162,48 @@ int main(int argc, char* argv[]) {
 
   /* Set up the openGLES shader program
      and assign it to the relevant cubes */
-  GLuint shader_red = load_shaders(vertexShaderPath, redShaderPath);
-  cube_1.shaderProgramAddress = shader_red;
+  GLuint shader_1 = load_shaders(vertexShaderPath, lightingShaderPath);
+  cube_1.shaderProgramAddress = shader_1;
 
-  GLuint shader_blue = load_shaders(vertexShaderPath, blueShaderPath);
-  cube_2.shaderProgramAddress = shader_blue;
+  GLuint shader_2 = load_shaders(vertexShaderPath, lightingShaderPath);
+  cube_2.shaderProgramAddress = shader_2;
 
   /* Get the location of the vPosition attribute in the shader program */
-  GLint position_attr_red = glGetAttribLocation(shader_red, "vPosition");
-  GLint position_attr_blue = glGetAttribLocation(shader_blue, "vPosition");
-
+  GLint position_attr_1 = glGetAttribLocation(shader_1, "vPosition");
+  GLint position_attr_2 = glGetAttribLocation(shader_2, "vPosition");
+   
   /* Get the location for the uniforms */
-  GLint model_ix_red = glGetUniformLocation(shader_red, "model");
-  GLint view_ix_red = glGetUniformLocation(shader_red, "view");
-  GLint perspective_ix_red = glGetUniformLocation(shader_red, "perspective");
-
-  GLint model_ix_blue = glGetUniformLocation(shader_blue, "model");
-  GLint view_ix_blue = glGetUniformLocation(shader_blue, "view");
-  GLint perspective_ix_blue = glGetUniformLocation(shader_blue, "perspective");
+  GLint model_ix_1 = glGetUniformLocation(shader_1, "model");
+  GLint view_ix_1 = glGetUniformLocation(shader_1, "view");
+  GLint perspective_ix_1 = glGetUniformLocation(shader_1, "perspective");
+  GLint object_col_1 = glGetUniformLocation(shader_1, "objectColour");
+  GLint lighting_col_1 = glGetUniformLocation(shader_1, "lightColour");
   
+  GLint model_ix_2 = glGetUniformLocation(shader_2, "model");
+  GLint view_ix_2 = glGetUniformLocation(shader_2, "view");
+  GLint perspective_ix_2 = glGetUniformLocation(shader_2, "perspective");
+  GLint object_col_2 = glGetUniformLocation(shader_2, "objectColour");
+  GLint lighting_col_2 = glGetUniformLocation(shader_2, "lightColour");
+  
+  /* Set the object and lighting colours for both cubes */
+  vec3 white = GLM_VEC3_ONE_INIT;
+  vec3 coral = GLM_VEC3_ZERO_INIT;
+  coral[0] = 1.0f;
+  coral[1] = 0.5f;
+  coral[2] = 0.31f;
+
   /* Now - a main animation loop! */
   bool shouldExit = false;
   SDL_Event event;
 
-  /* I want to move the second cube across */
-  vec3 mv_vector = GLM_VEC3_ZERO_INIT;
-  mv_vector[0] = 3.0f;
-  glm_translate(cube_2.model_matrix, mv_vector);
+  /* I want to move the second cube across and make it orbit
+     the centre */
+  vec3 cube_2_position_vector = GLM_VEC3_ZERO_INIT;
+  cube_2_position_vector[0] = 3.0f;
+  vec3 z_axis = GLM_VEC3_ZERO_INIT;
+  z_axis[2] = 1.0f;
+  vec3 cube_2_translation_vector;
+  glm_translate(cube_2.model_matrix, cube_2_position_vector);
 
   unsigned long int time_now = SDL_GetTicks();
   unsigned long int num_frames = 0;
@@ -250,12 +224,47 @@ int main(int argc, char* argv[]) {
    
     /* Render cube 1 */     
     glUseProgram(cube_1.shaderProgramAddress);
-    glEnableVertexAttribArray(position_attr_red);
+    glEnableVertexAttribArray(position_attr_1);
     glBindBuffer(GL_ARRAY_BUFFER, cube_1.vertexVBO);
-    glVertexAttribPointer(position_attr_red, 3,
+    glVertexAttribPointer(position_attr_1, 3,
 			  GL_FLOAT, GL_FALSE,
 			  3*sizeof(GLfloat),
 			  (void*)(0*sizeof(GLfloat)));
+
+    /* Next: apply the model, view and projection matrices */
+    glUniformMatrix4fv(model_ix_1, 1, GL_FALSE, cube_1.model_matrix[0]);
+    glUniformMatrix4fv(view_ix_1, 1, GL_FALSE, view_matrix[0]);
+    glUniformMatrix4fv(perspective_ix_1, 1, GL_FALSE, projection_matrix[0]);
+
+    glUniform3fv(object_col_1, 1, white);
+    glUniform3fv(lighting_col_1, 1, coral);
+     
+    glDrawArrays(GL_TRIANGLES, 0, 3 * cube_1.num_triangles);
+     
+    glDisableVertexAttribArray(position_attr_1);
+
+    /* Render cube 2  */
+    glUseProgram(cube_2.shaderProgramAddress);
+    glEnableVertexAttribArray(position_attr_2);
+    glBindBuffer(GL_ARRAY_BUFFER, cube_2.vertexVBO);
+    glVertexAttribPointer(position_attr_2, 3,
+			  GL_FLOAT, GL_FALSE,
+			  3*sizeof(GLfloat),
+			  (void*)(0*sizeof(GLfloat)));
+    glUniformMatrix4fv(model_ix_2, 1, GL_FALSE, cube_2.model_matrix[0]);
+    glUniformMatrix4fv(view_ix_2, 1, GL_FALSE, view_matrix[0]);
+    glUniformMatrix4fv(perspective_ix_2, 1, GL_FALSE, projection_matrix[0]);  
+
+    glUniform3fv(object_col_2, 1, white);
+    glUniform3fv(lighting_col_2, 1, white);
+  
+    glDrawArrays(GL_TRIANGLES, 0, 3 * cube_2.num_triangles);
+     
+    glDisableVertexAttribArray(position_attr_2);
+    
+    SDL_GL_SwapWindow(window);
+
+    /* Update any required positions */
 
     /* Apply a rotation to the cube_1 model matrix */
     vec3 rotAxis = GLM_VEC3_ZERO_INIT;
@@ -264,35 +273,21 @@ int main(int argc, char* argv[]) {
     glm_rotate(cube_1.model_matrix,
 	       0.05f,
 	       rotAxis);
-
-    /* Next: apply the model, view and projection matrices */
-    glUniformMatrix4fv(model_ix_red, 1, GL_FALSE, cube_1.model_matrix[0]);
-    glUniformMatrix4fv(view_ix_red, 1, GL_FALSE, view_matrix[0]);
-    glUniformMatrix4fv(perspective_ix_red, 1, GL_FALSE, projection_matrix[0]);
-
-    glDrawArrays(GL_TRIANGLES, 0, 3 * cube_1.num_triangles);
-     
-    glDisableVertexAttribArray(position_attr_red);
-
-    /* Render cube 2  */
-    glUseProgram(cube_2.shaderProgramAddress);
-    glEnableVertexAttribArray(position_attr_blue);
-    glBindBuffer(GL_ARRAY_BUFFER, cube_2.vertexVBO);
-    glVertexAttribPointer(position_attr_blue, 3,
-			  GL_FLOAT, GL_FALSE,
-			  3*sizeof(GLfloat),
-			  (void*)(0*sizeof(GLfloat)));
-
-    glUniformMatrix4fv(model_ix_blue, 1, GL_FALSE, cube_2.model_matrix[0]);
-    glUniformMatrix4fv(view_ix_blue, 1, GL_FALSE, view_matrix[0]);
-    glUniformMatrix4fv(perspective_ix_blue, 1, GL_FALSE, projection_matrix[0]);
     
-    glDrawArrays(GL_TRIANGLES, 0, 3 * cube_2.num_triangles);
-     
-    glDisableVertexAttribArray(position_attr_blue);
-    
-    SDL_GL_SwapWindow(window);
+    /* I want the blue cube to orbit the red cube */
+    glm_vec3_cross(cube_2_position_vector,
+		   z_axis, 
+		   cube_2_translation_vector);
 
+    glm_vec3_scale(cube_2_translation_vector, 0.01, cube_2_translation_vector);
+
+    glm_vec3_add(cube_2_position_vector,
+		 cube_2_translation_vector,
+		 cube_2_position_vector);
+    
+    glm_translate(cube_2.model_matrix, cube_2_translation_vector);
+
+    /* Frame counter */
     num_frames += 1;
     if(num_frames == frame_max) {
       new_time = SDL_GetTicks();

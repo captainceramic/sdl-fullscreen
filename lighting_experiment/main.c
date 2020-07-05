@@ -174,19 +174,28 @@ int main(int argc, char* argv[]) {
   /* Get the location of the vPosition attribute in the shader program */
   GLint position_attr_1 = glGetAttribLocation(shader_1, "vPosition");
   GLint position_attr_2 = glGetAttribLocation(shader_2, "vPosition");
-   
+
+  GLint normal_attr_1 = glGetAttribLocation(shader_1, "vNormal");
+  GLint normal_attr_2 = glGetAttribLocation(shader_2, "vNormal");
+
   /* Get the location for the uniforms */
   GLint model_ix_1 = glGetUniformLocation(shader_1, "model");
   GLint view_ix_1 = glGetUniformLocation(shader_1, "view");
   GLint perspective_ix_1 = glGetUniformLocation(shader_1, "perspective");
+  
   GLint object_col_1 = glGetUniformLocation(shader_1, "objectColour");
   GLint lighting_col_1 = glGetUniformLocation(shader_1, "lightColour");
+  GLint ambient_strength_1 = glGetUniformLocation(shader_1, "ambientStrength");
+  GLint lighting_pos_1 = glGetUniformLocation(shader_1, "lightPos");
   
   GLint model_ix_2 = glGetUniformLocation(shader_2, "model");
   GLint view_ix_2 = glGetUniformLocation(shader_2, "view");
   GLint perspective_ix_2 = glGetUniformLocation(shader_2, "perspective");
+
   GLint object_col_2 = glGetUniformLocation(shader_2, "objectColour");
   GLint lighting_col_2 = glGetUniformLocation(shader_2, "lightColour");
+  GLint ambient_strength_2 = glGetUniformLocation(shader_2, "ambientStrength");
+  GLint lighting_pos_2 = glGetUniformLocation(shader_2, "lightPos");
   
   /* Set the object and lighting colours for both cubes */
   vec3 white = GLM_VEC3_ONE_INIT;
@@ -236,8 +245,7 @@ int main(int argc, char* argv[]) {
 	       rotAxis);
     
     /* I want the blue cube to orbit the red cube */
-    glm_vec3_cross(cube_2_position_vector,
-		   z_axis, 
+    glm_vec3_cross(cube_2_position_vector, z_axis, 
 		   cube_2_translation_vector);
 
     glm_vec3_scale(cube_2_translation_vector, 0.01, cube_2_translation_vector);
@@ -250,6 +258,18 @@ int main(int argc, char* argv[]) {
 
     /* Render cube 1 */     
     glUseProgram(cube_1.shaderProgramAddress);
+
+    /* Apply the model, view and projection matrices */
+    glUniformMatrix4fv(model_ix_1, 1, GL_FALSE, cube_1.model_matrix[0]);
+    glUniformMatrix4fv(view_ix_1, 1, GL_FALSE, view_matrix[0]);
+    glUniformMatrix4fv(perspective_ix_1, 1, GL_FALSE, projection_matrix[0]);
+
+    glUniform3fv(object_col_1, 1, white);
+    glUniform3fv(lighting_col_1, 1, coral);
+    glUniform3fv(lighting_pos_1, 1, cube_2_position_vector);
+    glUniform1f(ambient_strength_1, 0.1f);
+
+    /* Vertices */
     glEnableVertexAttribArray(position_attr_1);
     glBindBuffer(GL_ARRAY_BUFFER, cube_1.vertexVBO);
     glVertexAttribPointer(position_attr_1, 3,
@@ -257,36 +277,48 @@ int main(int argc, char* argv[]) {
 			  3*sizeof(GLfloat),
 			  (void*)(0*sizeof(GLfloat)));
 
-    /* Next: apply the model, view and projection matrices */
-    glUniformMatrix4fv(model_ix_1, 1, GL_FALSE, cube_1.model_matrix[0]);
-    glUniformMatrix4fv(view_ix_1, 1, GL_FALSE, view_matrix[0]);
-    glUniformMatrix4fv(perspective_ix_1, 1, GL_FALSE, projection_matrix[0]);
-
-    glUniform3fv(object_col_1, 1, white);
-    glUniform3fv(lighting_col_1, 1, coral);
-     
-    glDrawArrays(GL_TRIANGLES, 0, 3 * cube_1.num_triangles);
-     
-    glDisableVertexAttribArray(position_attr_1);
-
-    /* Render cube 2  */
-    glUseProgram(cube_2.shaderProgramAddress);
-    glEnableVertexAttribArray(position_attr_2);
-    glBindBuffer(GL_ARRAY_BUFFER, cube_2.vertexVBO);
-    glVertexAttribPointer(position_attr_2, 3,
+    glEnableVertexAttribArray(normal_attr_1);
+    glBindBuffer(GL_ARRAY_BUFFER, cube_1.normalVBO);
+    glVertexAttribPointer(normal_attr_1, 3,
 			  GL_FLOAT, GL_FALSE,
 			  3*sizeof(GLfloat),
 			  (void*)(0*sizeof(GLfloat)));
+    
+    glDrawArrays(GL_TRIANGLES, 0, 3 * cube_1.num_triangles);
+
+    glDisableVertexAttribArray(position_attr_1);
+    glDisableVertexAttribArray(normal_attr_1);
+    
+    /* Render cube 2  */
+    glUseProgram(cube_2.shaderProgramAddress);
+
     glUniformMatrix4fv(model_ix_2, 1, GL_FALSE, cube_2.model_matrix[0]);
     glUniformMatrix4fv(view_ix_2, 1, GL_FALSE, view_matrix[0]);
     glUniformMatrix4fv(perspective_ix_2, 1, GL_FALSE, projection_matrix[0]);  
 
     glUniform3fv(object_col_2, 1, white);
     glUniform3fv(lighting_col_2, 1, white);
-  
+    glUniform3fv(lighting_pos_2, 1, cube_2_position_vector);
+    glUniform1f(ambient_strength_2, 1.0f);
+
+    glEnableVertexAttribArray(position_attr_2);
+    glBindBuffer(GL_ARRAY_BUFFER, cube_2.vertexVBO);
+    glVertexAttribPointer(position_attr_2, 3,
+			  GL_FLOAT, GL_FALSE,
+			  3*sizeof(GLfloat),
+			  (void*)(0*sizeof(GLfloat)));
+
+    glEnableVertexAttribArray(normal_attr_2);
+    glBindBuffer(GL_ARRAY_BUFFER, cube_2.normalVBO);
+    glVertexAttribPointer(normal_attr_2, 3,
+			  GL_FLOAT, GL_FALSE,
+			  3*sizeof(GLfloat),
+			  (void*)(0*sizeof(GLfloat)));
+    
     glDrawArrays(GL_TRIANGLES, 0, 3 * cube_2.num_triangles);
-     
+
     glDisableVertexAttribArray(position_attr_2);
+    glDisableVertexAttribArray(normal_attr_2);
     
     SDL_GL_SwapWindow(window);
 

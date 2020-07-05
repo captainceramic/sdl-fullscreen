@@ -152,6 +152,9 @@ int main(int argc, char* argv[]) {
   Cube cube_1 = create_cube("../data/cube.obj");
   Cube cube_2 = create_cube("../data/cube.obj");
 
+  /* TODO: I want cube_2 to be small */
+  /* glm_scale_uni(cube_2.model_matrix, 0.2f); */
+
   /* Next up: we need view and projection matrices
      these stay constant */
   mat4 view_matrix = GLM_MAT4_IDENTITY_INIT;
@@ -221,7 +224,30 @@ int main(int argc, char* argv[]) {
 	break;
       }
     }
-   
+
+    /* Update any required positions */
+
+    /* Apply a rotation to the cube_1 model matrix */
+    vec3 rotAxis = GLM_VEC3_ZERO_INIT;
+    rotAxis[1] = 1.0f;
+    rotAxis[0] = 0.2f;
+    glm_rotate(cube_1.model_matrix,
+	       0.05f,
+	       rotAxis);
+    
+    /* I want the blue cube to orbit the red cube */
+    glm_vec3_cross(cube_2_position_vector,
+		   z_axis, 
+		   cube_2_translation_vector);
+
+    glm_vec3_scale(cube_2_translation_vector, 0.01, cube_2_translation_vector);
+
+    glm_vec3_add(cube_2_position_vector,
+		 cube_2_translation_vector,
+		 cube_2_position_vector);
+    
+    glm_translate(cube_2.model_matrix, cube_2_translation_vector);
+
     /* Render cube 1 */     
     glUseProgram(cube_1.shaderProgramAddress);
     glEnableVertexAttribArray(position_attr_1);
@@ -263,29 +289,6 @@ int main(int argc, char* argv[]) {
     glDisableVertexAttribArray(position_attr_2);
     
     SDL_GL_SwapWindow(window);
-
-    /* Update any required positions */
-
-    /* Apply a rotation to the cube_1 model matrix */
-    vec3 rotAxis = GLM_VEC3_ZERO_INIT;
-    rotAxis[1] = 1.0f;
-    rotAxis[0] = 0.2f;
-    glm_rotate(cube_1.model_matrix,
-	       0.05f,
-	       rotAxis);
-    
-    /* I want the blue cube to orbit the red cube */
-    glm_vec3_cross(cube_2_position_vector,
-		   z_axis, 
-		   cube_2_translation_vector);
-
-    glm_vec3_scale(cube_2_translation_vector, 0.01, cube_2_translation_vector);
-
-    glm_vec3_add(cube_2_position_vector,
-		 cube_2_translation_vector,
-		 cube_2_position_vector);
-    
-    glm_translate(cube_2.model_matrix, cube_2_translation_vector);
 
     /* Frame counter */
     num_frames += 1;

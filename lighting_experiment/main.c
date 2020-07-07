@@ -182,6 +182,7 @@ int main(int argc, char* argv[]) {
   GLint model_ix_1 = glGetUniformLocation(shader_1, "model");
   GLint view_ix_1 = glGetUniformLocation(shader_1, "view");
   GLint perspective_ix_1 = glGetUniformLocation(shader_1, "perspective");
+  GLint mat_normal_ix_1 = glGetUniformLocation(shader_1, "mat_normal");
   
   GLint object_col_1 = glGetUniformLocation(shader_1, "objectColour");
   GLint lighting_col_1 = glGetUniformLocation(shader_1, "lightColour");
@@ -191,7 +192,8 @@ int main(int argc, char* argv[]) {
   GLint model_ix_2 = glGetUniformLocation(shader_2, "model");
   GLint view_ix_2 = glGetUniformLocation(shader_2, "view");
   GLint perspective_ix_2 = glGetUniformLocation(shader_2, "perspective");
-
+  GLint mat_normal_ix_2 = glGetUniformLocation(shader_2, "mat_normal");
+  
   GLint object_col_2 = glGetUniformLocation(shader_2, "objectColour");
   GLint lighting_col_2 = glGetUniformLocation(shader_2, "lightColour");
   GLint ambient_strength_2 = glGetUniformLocation(shader_2, "ambientStrength");
@@ -223,6 +225,9 @@ int main(int argc, char* argv[]) {
   unsigned int new_time;
   int frame_max = 5 * 60;
   
+  mat4 normal_matrix_1;
+  mat4 normal_matrix_2;
+  
   while(!shouldExit) {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -235,7 +240,6 @@ int main(int argc, char* argv[]) {
     }
 
     /* Update any required positions */
-
     /* Apply a rotation to the cube_1 model matrix */
     vec3 rotAxis = GLM_VEC3_ZERO_INIT;
     rotAxis[1] = 1.0f;
@@ -255,7 +259,14 @@ int main(int argc, char* argv[]) {
 		 cube_2_position_vector);
     
     glm_translate(cube_2.model_matrix, cube_2_translation_vector);
+    
+    /* Calculate the normal matrices */
+    glm_mat4_inv(cube_1.model_matrix, normal_matrix_1);
+    glm_mat4_transpose(normal_matrix_1);
 
+    glm_mat4_inv(cube_2.model_matrix, normal_matrix_2);
+    glm_mat4_transpose(normal_matrix_2);
+    
     /* Render cube 1 */     
     glUseProgram(cube_1.shaderProgramAddress);
 
@@ -263,21 +274,23 @@ int main(int argc, char* argv[]) {
     glUniformMatrix4fv(model_ix_1, 1, GL_FALSE, cube_1.model_matrix[0]);
     glUniformMatrix4fv(view_ix_1, 1, GL_FALSE, view_matrix[0]);
     glUniformMatrix4fv(perspective_ix_1, 1, GL_FALSE, projection_matrix[0]);
-
+    glUniformMatrix4fv(mat_normal_ix_1, 1, GL_FALSE, normal_matrix_1[0]);
+    
     glUniform3fv(object_col_1, 1, white);
     glUniform3fv(lighting_col_1, 1, coral);
     glUniform3fv(lighting_pos_1, 1, cube_2_position_vector);
     glUniform1f(ambient_strength_1, 0.1f);
 
-    /* Vertices */
+    glEnableVertexAttribArray(normal_attr_1);
     glEnableVertexAttribArray(position_attr_1);
+    
+    /* Vertices */
     glBindBuffer(GL_ARRAY_BUFFER, cube_1.vertexVBO);
     glVertexAttribPointer(position_attr_1, 3,
 			  GL_FLOAT, GL_FALSE,
 			  3*sizeof(GLfloat),
 			  (void*)(0*sizeof(GLfloat)));
 
-    glEnableVertexAttribArray(normal_attr_1);
     glBindBuffer(GL_ARRAY_BUFFER, cube_1.normalVBO);
     glVertexAttribPointer(normal_attr_1, 3,
 			  GL_FLOAT, GL_FALSE,
@@ -295,20 +308,22 @@ int main(int argc, char* argv[]) {
     glUniformMatrix4fv(model_ix_2, 1, GL_FALSE, cube_2.model_matrix[0]);
     glUniformMatrix4fv(view_ix_2, 1, GL_FALSE, view_matrix[0]);
     glUniformMatrix4fv(perspective_ix_2, 1, GL_FALSE, projection_matrix[0]);  
-
+    glUniformMatrix4fv(mat_normal_ix_2, 1, GL_FALSE, normal_matrix_2[0]);
+    
     glUniform3fv(object_col_2, 1, white);
     glUniform3fv(lighting_col_2, 1, white);
     glUniform3fv(lighting_pos_2, 1, cube_2_position_vector);
     glUniform1f(ambient_strength_2, 1.0f);
 
     glEnableVertexAttribArray(position_attr_2);
+    glEnableVertexAttribArray(normal_attr_2);
+
     glBindBuffer(GL_ARRAY_BUFFER, cube_2.vertexVBO);
     glVertexAttribPointer(position_attr_2, 3,
 			  GL_FLOAT, GL_FALSE,
 			  3*sizeof(GLfloat),
 			  (void*)(0*sizeof(GLfloat)));
 
-    glEnableVertexAttribArray(normal_attr_2);
     glBindBuffer(GL_ARRAY_BUFFER, cube_2.normalVBO);
     glVertexAttribPointer(normal_attr_2, 3,
 			  GL_FLOAT, GL_FALSE,

@@ -124,17 +124,13 @@ void destroy_cube(Cube * thisCube) {
   free(thisCube->normals);
 }
 
-void create_view_matrix(mat4* view_matrix_ptr) {
-  vec3 eye = GLM_VEC3_ZERO_INIT;
-  eye[2] = 8.0;
-  eye[1] = 0.5;
-  
-  vec3 centre = GLM_VEC3_ZERO_INIT;
+void create_view_matrix(mat4* view_matrix_ptr, vec3* view_vector_ptr) {
 
+  vec3 centre = GLM_VEC3_ZERO_INIT;
   vec3 up = GLM_VEC3_ZERO_INIT;
   up[1] = 1.0;
-  
-  glm_lookat(eye, centre, up, *view_matrix_ptr);
+
+  glm_lookat(*view_vector_ptr, centre, up, *view_matrix_ptr);
 }
 
 void create_projection_matrix(mat4* projection_matrix_ptr) {
@@ -158,8 +154,14 @@ int main(int argc, char* argv[]) {
   /* Next up: we need view and projection matrices
      these stay constant */
   mat4 view_matrix = GLM_MAT4_IDENTITY_INIT;
-  create_view_matrix(&view_matrix);
+  vec3 view_position = GLM_VEC3_ZERO_INIT;
+  view_position[2] = 8.0;
+  view_position[1] = 0.5;
+  create_view_matrix(&view_matrix, &view_position);
 
+  printf("Our view position is: %f %f %f\n",
+	 view_position[0], view_position[1], view_position[2]);
+  
   mat4 projection_matrix = GLM_MAT4_IDENTITY_INIT;
   create_projection_matrix(&projection_matrix);
 
@@ -187,7 +189,9 @@ int main(int argc, char* argv[]) {
   GLint object_col_1 = glGetUniformLocation(shader_1, "objectColour");
   GLint lighting_col_1 = glGetUniformLocation(shader_1, "lightColour");
   GLint ambient_strength_1 = glGetUniformLocation(shader_1, "ambientStrength");
+  GLint specular_strength_1 = glGetUniformLocation(shader_1, "specularStrength");
   GLint lighting_pos_1 = glGetUniformLocation(shader_1, "lightPos");
+  GLint view_pos_1 = glGetUniformLocation(shader_1, "viewPos");
   
   GLint model_ix_2 = glGetUniformLocation(shader_2, "model");
   GLint view_ix_2 = glGetUniformLocation(shader_2, "view");
@@ -197,7 +201,9 @@ int main(int argc, char* argv[]) {
   GLint object_col_2 = glGetUniformLocation(shader_2, "objectColour");
   GLint lighting_col_2 = glGetUniformLocation(shader_2, "lightColour");
   GLint ambient_strength_2 = glGetUniformLocation(shader_2, "ambientStrength");
+  GLint specular_strength_2 = glGetUniformLocation(shader_2, "specularStrength");
   GLint lighting_pos_2 = glGetUniformLocation(shader_2, "lightPos");
+  GLint view_pos_2 = glGetUniformLocation(shader_2, "viewPos");
   
   /* Set the object and lighting colours for both cubes */
   vec3 white = GLM_VEC3_ONE_INIT;
@@ -245,7 +251,7 @@ int main(int argc, char* argv[]) {
     rotAxis[1] = 1.0f;
     rotAxis[0] = 0.2f;
     glm_rotate(cube_1.model_matrix,
-	       0.05f,
+	       0.025f,
 	       rotAxis);
     
     /* I want the blue cube to orbit the red cube */
@@ -279,7 +285,9 @@ int main(int argc, char* argv[]) {
     glUniform3fv(object_col_1, 1, white);
     glUniform3fv(lighting_col_1, 1, coral);
     glUniform3fv(lighting_pos_1, 1, cube_2_position_vector);
+    glUniform3fv(view_pos_1, 1, view_position);
     glUniform1f(ambient_strength_1, 0.1f);
+    glUniform1f(specular_strength_1, 0.5f);
 
     glEnableVertexAttribArray(normal_attr_1);
     glEnableVertexAttribArray(position_attr_1);
@@ -313,7 +321,9 @@ int main(int argc, char* argv[]) {
     glUniform3fv(object_col_2, 1, white);
     glUniform3fv(lighting_col_2, 1, white);
     glUniform3fv(lighting_pos_2, 1, cube_2_position_vector);
+    glUniform3fv(view_pos_2, 1, view_position);
     glUniform1f(ambient_strength_2, 1.0f);
+    glUniform1f(specular_strength_2, 0.0f);
 
     glEnableVertexAttribArray(position_attr_2);
     glEnableVertexAttribArray(normal_attr_2);

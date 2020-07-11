@@ -1,5 +1,7 @@
 opengles_fullscreen
+data/newell_teaset.zip
+data/newell_teaset/
+data/teapot.obj
 *.o
-data
 *~
 

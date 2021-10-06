@@ -45,6 +45,8 @@ int main(int argc, char* argv[]) {
   
   if (window) {
     std::cout << "Created SDL OpenGL window" << std::endl;
+    const char* vidDriver = SDL_GetCurrentVideoDriver();
+    std::cout << "Video driver is: " << vidDriver << std::endl;
   } else {
     std::cout << "Error: Could not create window: " << SDL_GetError() << std::endl;
   }

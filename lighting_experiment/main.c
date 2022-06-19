@@ -34,7 +34,7 @@ void set_up() {
 			    SDL_WINDOWPOS_UNDEFINED,
 			    SDL_WINDOWPOS_UNDEFINED,
 			    sizeX, sizeY,
-			    SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN);
+			    SDL_WINDOW_OPENGL);
 
   if (window) {
     printf("Created SDL OpenGL window\n");
@@ -46,8 +46,8 @@ void set_up() {
   SDL_ShowCursor(SDL_DISABLE);
 
   // Create the actual context for GLESv2
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   glContext = SDL_GL_CreateContext(window);

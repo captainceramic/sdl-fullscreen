@@ -1,7 +1,8 @@
-export PKG_CONFIG_PATH = /opt/vc/lib/pkgconfig
+# This was originally compiled on rpi2 which needed the VideoCore package config path.
+# export PKG_CONFIG_PATH = /opt/vc/lib/pkgconfig
 CC = gcc -Wall -std=gnu11
 CFLAGS = `sdl2-config --cflags` -I ../shader_loader
-LDFLAGS =  `sdl2-config --libs` `pkg-config brcmglesv2 --libs` -lm
+LIBS =  `sdl2-config --libs` -lm `pkg-config glesv2 --libs`
 
 
 lighting_test.o: main.c object_loader.h cube.h
@@ -11,7 +12,7 @@ shader_loader.o: ../shader_loader/shader_loader.c
 	$(CC) ${CFLAGS} -o shader_loader.o -c ../shader_loader/shader_loader.c
 
 lighting_test: lighting_test.o shader_loader.o
-	$(CC) ${LDFLAGS} -o lighting_test lighting_test.o shader_loader.o
+	$(CC) -o lighting_test lighting_test.o shader_loader.o $(LIBS)
 
 .PHONY: all clean
 

@@ -15,8 +15,8 @@ extern "C" {
 // https://www.opengl-tutorial.org/beginners-tutorials/tutorial-3-matrices/
 
 // Set some parameters
-const int sizeX = 1920;
-const int sizeY = 1080;
+const int sizeX = 2560;
+const int sizeY = 1440;
 
 const char* fragmentShaderPath = "shaders/shader.frag";
 const char* vertexShaderPath = "shaders/shader.vert";
@@ -38,8 +38,8 @@ int main(int argc, char* argv[]) {
 			    SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN);
 
   // Set the window up for OpenGLESv2
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   

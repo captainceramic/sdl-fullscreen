@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
 
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-  printf("size of buffer data is: %d\n", sizeof(g_vertex_buffer_data));
+  printf("size of buffer data is: %ld\n", sizeof(g_vertex_buffer_data));
   
   glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data),
    	       g_vertex_buffer_data, GL_STATIC_DRAW);

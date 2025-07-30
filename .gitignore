@@ -5,4 +5,4 @@ data/newell_teaset/
 data/teapot.obj
 *.o
 *~
-
+.vscode

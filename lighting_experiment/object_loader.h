@@ -18,11 +18,11 @@ bool loadOBJ(const char* path, Cube* cubePtr) {
   }
 
   fseek(fp, 0L, SEEK_END);
-  uint file_size = ftell(fp);
+  unsigned int file_size = ftell(fp);
   printf("file is %d bytes long\n", file_size);
   rewind(fp);
 
-  uint max_length = file_size / 8;
+  unsigned int max_length = file_size / 8;
   printf("therefore, cannot require more than %d vertices\n", max_length);
   
   /* Next step: allocate memory for the temp arrays
@@ -43,10 +43,10 @@ bool loadOBJ(const char* path, Cube* cubePtr) {
   /* Now we start parsing the file
      I think this bit is from the learn openGL tutorial
   */
-  uint vert_ix = 0;
-  uint uv_ix = 0;
-  uint normal_ix = 0;
-  uint output_ix = 0;
+  unsigned int vert_ix = 0;
+  unsigned int uv_ix = 0;
+  unsigned int normal_ix = 0;
+  unsigned int output_ix = 0;
   
   while( 1 ) {
     char lineHeader[128];
@@ -101,7 +101,7 @@ bool loadOBJ(const char* path, Cube* cubePtr) {
   printf("file contains: %d vertices, %d uvs and %d normals\n",
 	 vert_ix, uv_ix, normal_ix);
   
-  uint output_length = output_ix / 9;
+  unsigned int output_length = output_ix / 9;
   printf("output length must be %d\n", output_length);
   
   /* Now set up the outputs - straightforward arrays */

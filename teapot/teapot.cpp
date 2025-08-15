@@ -13,7 +13,7 @@
 #include <GLES2/gl2.h>
 
 extern "C" {
-  #include "../shader_loader.h"
+  #include "../shader_loader/shader_loader.h"
 }
 #include "object_loader.hpp"
 
